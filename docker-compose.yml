@@ -1,0 +1,17 @@
+# docker-compose.yml
+
+version: '3.8'
+services:
+  postgres:
+    container_name: attendio_db
+    image: postgis/postgis:16-3.4-alpine
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - '5432:${POSTGRES_PORT}'
+
+volumes:
+  pgdata: {}
