@@ -2,7 +2,6 @@ const dotenv = require('dotenv').config({ override: true });
 import * as dotenvExpand from 'dotenv-expand';
 
 dotenvExpand.expand(dotenv);
-// console.log('Details:: ', dotenv);
 /**
  * Environments variables declared here.
  */
