@@ -1,8 +1,10 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import EnvVars from './constants/EnvVars';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  await app.listen(3000);
+  app.setGlobalPrefix(EnvVars.BASE_URL);
+  await app.listen(EnvVars.Port);
 }
 bootstrap();
