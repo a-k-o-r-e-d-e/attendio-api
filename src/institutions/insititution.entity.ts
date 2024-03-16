@@ -39,10 +39,10 @@ export class Institution {
   @IsNotEmpty()
   country: string;
 
-  @CreateDateColumn()
+  @CreateDateColumn({select: false})
   created_at: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({select: false})
   updated_at: Date;
 
   // HOOKS
