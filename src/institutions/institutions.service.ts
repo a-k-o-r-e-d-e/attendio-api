@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Institution } from './insititution.entity';
-import { Repository } from 'typeorm';
+import { ILike, Like, Repository } from 'typeorm';
 
 @Injectable()
 export class InstitutionsService {
@@ -12,5 +12,12 @@ export class InstitutionsService {
 
   async findAll(): Promise<Institution[]> {
     return await this.institutionRepository.find();
+  }
+
+  async searchByName(searchText: string): Promise<Institution[]> {
+     const searchTextLower = searchText ? searchText.toLowerCase() : '';
+    return await this.institutionRepository.findBy({
+        name: ILike(`%${searchTextLower}%`)
+    })
   }
 }
