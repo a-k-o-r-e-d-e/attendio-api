@@ -5,7 +5,7 @@ import { ConfigModule } from '@nestjs/config';
 import * as Joi from 'joi';
 import { DatabaseModule } from './database/database.module';
 import { UsersModule } from './users/users.module';
-import { UsersService } from './users/users.service';
+import { InstitutionsModule } from './institutions/institutions.module';
 
 @Module({
   imports: [
@@ -24,8 +24,9 @@ import { UsersService } from './users/users.service';
     }),
     DatabaseModule,
     UsersModule,
+    InstitutionsModule,
   ],
   controllers: [AppController],
-  providers: [AppService, UsersService],
+  providers: [AppService],
 })
 export class AppModule {}
