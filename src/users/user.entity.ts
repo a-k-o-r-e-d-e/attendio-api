@@ -1,23 +1,22 @@
 import { IsEmail, IsEnum, IsNotEmpty, ValidateIf, validateOrReject } from 'class-validator';
 import { Factory } from 'nestjs-seeder';
 import { Role } from '../constants/enums';
-import { Entity, Column, PrimaryGeneratedColumn, BeforeInsert, BeforeUpdate } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, BeforeInsert, BeforeUpdate, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
 @Entity()
 export class User {
   @PrimaryGeneratedColumn('uuid')
-  id: number;
+  id: string;
 
   @Factory((faker) => faker.internet.userName())
-  @Column()
+  @Column({unique: true})
   @IsNotEmpty()
   username: string;
 
   @Factory((faker) => faker.internet.email())
-  @Column({ nullable: true })
+  @Column({unique: true})
   @IsEmail()
-  @ValidateIf((_, value) => value !== null)
-  email: string | null;
+  email: string;
 
   @Factory((faker) => faker.internet.password())
   @Column()
@@ -28,6 +27,12 @@ export class User {
   @Column({ type: 'enum', enum: Role })
   @IsEnum(Role)
   type: Role;
+
+  @CreateDateColumn()
+  created_at: Date;
+
+  @UpdateDateColumn()
+  updated_at: Date;
 
   // HOOKS
   @BeforeInsert()
