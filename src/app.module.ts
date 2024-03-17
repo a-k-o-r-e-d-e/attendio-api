@@ -7,6 +7,7 @@ import { DatabaseModule } from './database/database.module';
 import { UsersModule } from './users/users.module';
 import { InstitutionsModule } from './institutions/institutions.module';
 import { LecturersModule } from './lecturers/lecturers.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -21,12 +22,15 @@ import { LecturersModule } from './lecturers/lecturers.module';
         POSTGRES_PASSWORD: Joi.string().required(),
         POSTGRES_DB: Joi.string().required(),
         PORT: Joi.number(),
+        JWT_SECRET: Joi.string().required(),
+        JWT_EXPIRATION_TIME: Joi.string(),
       }),
     }),
     DatabaseModule,
     UsersModule,
     InstitutionsModule,
     LecturersModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

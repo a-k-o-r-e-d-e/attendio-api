@@ -1,26 +1,52 @@
-import { IsEmail, IsEnum, IsNotEmpty, ValidateIf, validateOrReject } from 'class-validator';
+import {
+  IsEmail,
+  IsEnum,
+  IsNotEmpty,
+  IsStrongPassword,
+  validateOrReject,
+} from 'class-validator';
 import { Factory } from 'nestjs-seeder';
 import { Role } from '../constants/enums';
-import { Entity, Column, PrimaryGeneratedColumn, BeforeInsert, BeforeUpdate, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  BeforeInsert,
+  BeforeUpdate,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import { Exclude } from 'class-transformer';
 
 @Entity()
 export class User {
+  constructor(partial: Partial<User>) {
+    Object.assign(this, partial);
+  }
+
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Factory((faker) => faker.internet.userName())
-  @Column({unique: true})
+  @Column({ unique: true })
   @IsNotEmpty()
   username: string;
 
   @Factory((faker) => faker.internet.email())
-  @Column({unique: true})
+  @Column({ unique: true })
   @IsEmail()
   email: string;
 
   @Factory((faker) => faker.internet.password())
   @Column()
   @IsNotEmpty()
+  @IsStrongPassword({
+    minLength: 8,
+    minLowercase: 1,
+    minUppercase: 1,
+    minNumbers: 1,
+  })
+  @Exclude()
   password: string;
 
   @Factory((faker) => faker.helpers.arrayElement(Object.values(Role)))
@@ -28,10 +54,10 @@ export class User {
   @IsEnum(Role)
   type: Role;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ select: false })
   created_at: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ select: false })
   updated_at: Date;
 
   // HOOKS
@@ -40,7 +66,6 @@ export class User {
   async validateUser?() {
     await validateOrReject(this, {
       skipMissingProperties: true,
-      forbidUnknownValues: false,
     });
   }
 }

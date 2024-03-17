@@ -14,4 +14,6 @@ export default {
   BASE_URL: 'api',
   MONGO_URI: process.env.MONGO_URI ?? '',
   DATABASE_URL: process.env.DATABASE_URL ?? '',
+  JWT_SECRET: process.env.JWT_SECRET ?? '',
+  JWT_EXPIRATION_TIME: process.env.JWT_EXPIRATION_TIME ?? '8h',
 } as const;
