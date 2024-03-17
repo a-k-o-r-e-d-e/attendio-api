@@ -1,4 +1,4 @@
-import { IsEnum, IsNotEmpty, validateOrReject } from 'class-validator';
+import { IsDate, IsEnum, IsNotEmpty, validateOrReject } from 'class-validator';
 import { InstitutionType } from '../constants/enums';
 import {
   Entity,
@@ -39,10 +39,12 @@ export class Institution {
   @IsNotEmpty()
   country: string;
 
-  @CreateDateColumn({select: false})
+  @CreateDateColumn({ select: false })
+  @IsDate()
   created_at: Date;
 
-  @UpdateDateColumn({select: false})
+  @UpdateDateColumn({ select: false })
+  @IsDate()
   updated_at: Date;
 
   // HOOKS
@@ -51,7 +53,6 @@ export class Institution {
   async validateUser?() {
     await validateOrReject(this, {
       skipMissingProperties: true,
-      forbidUnknownValues: false,
     });
   }
 }

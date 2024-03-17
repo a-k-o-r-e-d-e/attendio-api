@@ -6,6 +6,7 @@ import * as Joi from 'joi';
 import { DatabaseModule } from './database/database.module';
 import { UsersModule } from './users/users.module';
 import { InstitutionsModule } from './institutions/institutions.module';
+import { LecturersModule } from './lecturers/lecturers.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { InstitutionsModule } from './institutions/institutions.module';
     DatabaseModule,
     UsersModule,
     InstitutionsModule,
+    LecturersModule,
   ],
   controllers: [AppController],
   providers: [AppService],
