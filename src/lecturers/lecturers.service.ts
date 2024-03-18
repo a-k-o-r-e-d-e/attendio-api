@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
 import { Lecturer } from './lecturer.entity';
 import { CreateLecturerAndUserDto } from './dto/create-lecturer.dto';
+import { UpdateLecturerDto } from './dto/update-lecturer.dto';
 
 @Injectable()
 export class LecturersService {
@@ -48,7 +49,7 @@ export class LecturersService {
     return lecturer;
   }
 
-  async getByUsername (username: string): Promise<Lecturer> {
+  async getByUsername(username: string): Promise<Lecturer> {
     const lecturer = await this.findOne({
       user: {
         username,
@@ -68,5 +69,29 @@ export class LecturersService {
     const newLecturer = this.lecturerRepository.create(lecturerDto);
 
     return this.lecturerRepository.save(newLecturer);
+  }
+
+  async update(lecturer: Lecturer, lecturerDto: UpdateLecturerDto) {
+    if (lecturerDto.email) {
+      lecturerDto = {
+        ...lecturerDto,
+        user: {
+          email: lecturerDto.email,
+        },
+      } as any;
+    }
+
+    const lecturerUpdate = {
+      ...lecturer,
+      ...lecturerDto,
+      user: {
+        ...lecturer.user,
+        ...(lecturerDto as any).user,
+      },
+    };
+
+    await this.lecturerRepository.save(lecturerUpdate);
+
+    return await this.getById(lecturer.id);
   }
 }
