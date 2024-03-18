@@ -18,9 +18,9 @@ export class LecturersController {
   constructor(private readonly lecturerService: LecturersService) {}
 
   @UseGuards(JwtAuthGuard)
-  @Get(':id')
-  getById(@Param('id', new ParseUUIDPipe()) id: string): Promise<Lecturer> {
-    return this.lecturerService.getById(id);
+  @Get('me')
+  getById(@Req() req): Promise<Lecturer> {
+    return req.user;
   }
 
   @UseGuards(JwtAuthGuard)
