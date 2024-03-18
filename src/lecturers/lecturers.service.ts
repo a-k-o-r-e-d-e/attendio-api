@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
 import { Lecturer } from './lecturer.entity';
-import { CreateLecturerAndUserDto } from './dto/create-lecturer.dto';
+import { CreateLecturerDto } from './dto/create-lecturer.dto';
 import { UpdateLecturerDto } from './dto/update-lecturer.dto';
 
 @Injectable()
@@ -65,28 +65,22 @@ export class LecturersService {
     return lecturer;
   }
 
-  async create(lecturerDto: CreateLecturerAndUserDto) {
+  async create(lecturerDto: CreateLecturerDto) {
     const newLecturer = this.lecturerRepository.create(lecturerDto);
 
     return this.lecturerRepository.save(newLecturer);
   }
 
   async update(lecturer: Lecturer, lecturerDto: UpdateLecturerDto) {
-    if (lecturerDto.email) {
-      lecturerDto = {
-        ...lecturerDto,
-        user: {
-          email: lecturerDto.email,
-        },
-      } as any;
-    }
-
+    /// We perform update this way to ensure we update the referenced user table also.
+    // It is expected that we have used data validation to ensure only allowed/updatable values are passed to this function
     const lecturerUpdate = {
       ...lecturer,
       ...lecturerDto,
       user: {
         ...lecturer.user,
-        ...(lecturerDto as any).user,
+        // email is currently the only value allowed to be updated using the update lecturer endpoint
+        email: lecturerDto.user?.email ?? lecturer.user.email
       },
     };
 

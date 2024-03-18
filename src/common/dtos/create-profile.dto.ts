@@ -1,10 +1,10 @@
 import {
-  IsEmail,
   IsNotEmpty,
   IsPhoneNumber,
-  IsStrongPassword,
   IsUUID,
+  ValidateNested,
 } from 'class-validator';
+import { CreateUserDto } from 'src/users/dto/create-user.dto';
 
 export abstract class CreateProfileDto {
   @IsNotEmpty()
@@ -16,26 +16,8 @@ export abstract class CreateProfileDto {
   @IsNotEmpty()
   last_name: string;
 
-  @IsNotEmpty()
-  username: string;
-
-  @IsEmail()
-  email: string;
-
-  @IsStrongPassword(
-    {
-      minLength: 8,
-      minLowercase: 1,
-      minUppercase: 1,
-      minNumbers: 1,
-      minSymbols: 0,
-    },
-    {
-      message:
-        'Your password is not strong enough. Password must be atleast 8 characters long, contain 1 lowercase character, 1 uppercase character and 1 number',
-    },
-  )
-  password: string;
+  @ValidateNested()
+  user: CreateUserDto;
 
   @IsNotEmpty()
   gender: string;

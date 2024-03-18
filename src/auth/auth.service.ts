@@ -20,10 +20,7 @@ export class AuthService {
 
   async registerLecturer(lecturerDto: CreateLecturerDto) {
     try {
-      const newLecturer = await this.lecturerService.create({
-        ...lecturerDto,
-        user: await this.extractUser(lecturerDto, Role.Lecturer),
-      });
+      const newLecturer = await this.lecturerService.create(lecturerDto);
       return newLecturer;
     } catch (error) {
       console.error('Error: ', error);
@@ -92,15 +89,6 @@ export class AuthService {
     }
 
     return profile;
-  }
-
-  private async extractUser(profile: CreateProfileDto, role: Role) {
-    return {
-      email: profile.email,
-      username: profile.username,
-      password: await bcrypt.hash(profile.password, 10),
-      type: role,
-    };
   }
 
   private async verifyPassword(
