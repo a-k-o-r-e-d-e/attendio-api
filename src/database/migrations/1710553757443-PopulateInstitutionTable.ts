@@ -6,6 +6,7 @@ export class PopulateInstitutionTable1710553757443
   implements MigrationInterface
 {
   public async up(queryRunner: QueryRunner): Promise<void> {
+    console.log("Running Populate Institution Query");
     const fedUnis = [
       {
         name: 'Abubakar Tafawa Balewa University',
@@ -707,8 +708,6 @@ export class PopulateInstitutionTable1710553757443
         country: 'Nigeria',
       },
     ];
-
-    console.log('Universities Length: ', fedUnis.length);
 
     const institutions = [...fedUnis, ...stateUnis];
 

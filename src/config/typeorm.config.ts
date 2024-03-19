@@ -16,14 +16,17 @@ export const baseDataSourceOptions: DataSourceOptions = {
       rejectUnauthorized: false,
     },
   },
-  synchronize: true,
-};
+  synchronize: EnvVars.NodeEnv == 'production',
 
-export default new DataSource({
-  ...baseDataSourceOptions,
+  migrationsRun: true,
   migrations: [
     AddPostGISExtension1710546768616,
     CreateInstitutionTable1710547690198,
     PopulateInstitutionTable1710553757443,
   ],
+  logging: ['migration'],
+};
+
+export default new DataSource({
+  ...baseDataSourceOptions,
 });

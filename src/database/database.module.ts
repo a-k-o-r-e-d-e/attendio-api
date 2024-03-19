@@ -7,8 +7,6 @@ import { baseDataSourceOptions } from 'src/config/typeorm.config';
     TypeOrmModule.forRoot({
       ...baseDataSourceOptions,
       autoLoadEntities: true,
-      synchronize: true,
-      // logging: true
     }),
   ],
 })
