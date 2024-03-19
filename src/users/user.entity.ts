@@ -1,9 +1,9 @@
 import {
+  ArrayNotEmpty,
   ArrayUnique,
   IsEmail,
   IsEnum,
   IsNotEmpty,
-  IsStrongPassword,
   validateOrReject,
 } from 'class-validator';
 import { Factory } from 'nestjs-seeder';
@@ -49,6 +49,7 @@ export class User {
   @Factory((faker) => faker.helpers.arrayElements(Object.values(Role)))
   @Column({ type: 'enum', enum: Role, array: true })
   @ArrayUnique()
+  @ArrayNotEmpty()
   @IsEnum(Role, { each: true })
   roles: Role[];
 
