@@ -20,6 +20,9 @@ export class AuthService {
 
   async registerLecturer(lecturerDto: CreateLecturerDto) {
     try {
+      lecturerDto.user.password = await this.hashPassword(
+        lecturerDto.user.password,
+      );
       const newLecturer = await this.lecturerService.create(lecturerDto);
       return newLecturer;
     } catch (error) {
@@ -48,6 +51,7 @@ export class AuthService {
       await this.verifyPassword(plainTextPassword, user.password);
       return user;
     } catch (error) {
+      console.log('Error: ', error);
       throw new HttpException(
         'Wrong credentials provided',
         HttpStatus.BAD_REQUEST,
@@ -105,5 +109,17 @@ export class AuthService {
         HttpStatus.BAD_REQUEST,
       );
     }
+  }
+
+  private async hashPassword(plainTextPassword) {
+    return await bcrypt.hash(plainTextPassword, 10);
+  }
+
+  private async extractUser(profile: CreateProfileDto, role: Role) {
+    return {
+      ...profile.user,
+      password: await this.hashPassword(profile.user.password),
+      roles: [role],
+    };
   }
 }
