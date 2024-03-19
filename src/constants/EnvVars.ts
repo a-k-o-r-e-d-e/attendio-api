@@ -9,7 +9,7 @@ dotenvExpand.expand(dotenv);
 /* eslint-disable node/no-process-env */
 
 export default {
-  NodeEnv: process.env.NODE_ENV ?? '',
+  NodeEnv: process.env.NODE_ENV ?? 'development',
   Port: process.env.PORT ?? 1337,
   BASE_URL: 'api',
   MONGO_URI: process.env.MONGO_URI ?? '',
