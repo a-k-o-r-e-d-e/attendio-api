@@ -18,6 +18,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
+import { IsCustomStrongPassword } from './strong-password.decorator';
 
 @Entity()
 export class User {
@@ -41,12 +42,7 @@ export class User {
   @Factory((faker) => faker.internet.password())
   @Column()
   @IsNotEmpty()
-  @IsStrongPassword({
-    minLength: 8,
-    minLowercase: 1,
-    minUppercase: 1,
-    minNumbers: 1,
-  })
+  @IsCustomStrongPassword()
   @Exclude()
   password: string;
 

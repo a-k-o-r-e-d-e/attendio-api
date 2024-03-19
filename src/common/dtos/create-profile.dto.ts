@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import {
   IsNotEmpty,
   IsPhoneNumber,
@@ -17,6 +18,7 @@ export abstract class CreateProfileDto {
   last_name: string;
 
   @ValidateNested()
+  @Type(() => CreateUserDto)
   user: CreateUserDto;
 
   @IsNotEmpty()

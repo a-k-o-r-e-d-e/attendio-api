@@ -1,5 +1,5 @@
-import { IsEmail, IsEnum, IsNotEmpty, IsStrongPassword } from 'class-validator';
-import { Role } from 'src/constants/enums';
+import { IsEmail, IsNotEmpty, IsStrongPassword } from 'class-validator';
+import { IsCustomStrongPassword } from '../strong-password.decorator';
 
 export class CreateUserDto {
   @IsNotEmpty()
@@ -9,15 +9,6 @@ export class CreateUserDto {
   email: string;
 
   @IsNotEmpty()
-  @IsStrongPassword({
-    minLength: 8,
-    minLowercase: 1,
-    minUppercase: 1,
-    minNumbers: 1,
-  })
+  @IsCustomStrongPassword()
   password: string;
-
-  @IsEnum(Role)
-  type: Role;
 }
-
