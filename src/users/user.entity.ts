@@ -1,4 +1,5 @@
 import {
+  ArrayUnique,
   IsEmail,
   IsEnum,
   IsNotEmpty,
@@ -49,10 +50,11 @@ export class User {
   @Exclude()
   password: string;
 
-  @Factory((faker) => faker.helpers.arrayElement(Object.values(Role)))
-  @Column({ type: 'enum', enum: Role })
-  @IsEnum(Role)
-  type: Role;
+  @Factory((faker) => faker.helpers.arrayElements(Object.values(Role)))
+  @Column({ type: 'enum', enum: Role, array: true })
+  @ArrayUnique()
+  @IsEnum(Role, { each: true })
+  roles: Role[];
 
   @CreateDateColumn({ select: false })
   created_at: Date;

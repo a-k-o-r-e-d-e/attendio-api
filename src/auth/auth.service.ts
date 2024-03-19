@@ -56,7 +56,7 @@ export class AuthService {
   }
 
   async login(user: User, userType: Role) {
-    if (user.type != Role.Admin && userType != user.type) {
+    if (![Role.Admin, userType].some((role) => user.roles.includes(role))) {
       throw new HttpException(
         `Authentication Failed: User is not a ${userType}`,
         HttpStatus.BAD_REQUEST,
