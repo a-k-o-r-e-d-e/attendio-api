@@ -7,6 +7,15 @@ import { PopulateInstitutionTable1710553757443 } from '../database/migrations/17
 export const baseDataSourceOptions: DataSourceOptions = {
   type: 'postgres',
   url: EnvVars.DATABASE_URL,
+  extra: {
+    ssl: {
+      require: true,
+      /// note setting this to false opens us to Man In the middle attacks
+      /// To really solve this problem we need to set up proper SSL cert on Heroku
+      /// Easiest way to do this is to move from eco to basic plan and enable ACM [https://devcenter.heroku.com/articles/automated-certificate-management]
+      rejectUnauthorized: false,
+    },
+  },
   synchronize: true,
 };
 
