@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
 import { Lecturer } from './lecturer.entity';
@@ -19,16 +19,17 @@ export class LecturersService {
   private async findOne(
     whereClause: FindOptionsWhere<Lecturer>,
   ): Promise<Lecturer> {
-    return this.lecturerRepository.findOneBy(whereClause);
+    const lecturer = await this.lecturerRepository.findOneBy(whereClause);
+    if (!lecturer) {
+      throw new NotFoundException('Lecturer  does not exist');
+    }
+    return lecturer;
   }
 
   async getById(id: string): Promise<Lecturer> {
     const lecturer = await this.findOne({ id });
     if (!lecturer) {
-      throw new HttpException(
-        'Lecturer with this id does not exist',
-        HttpStatus.NOT_FOUND,
-      );
+      throw new NotFoundException('Lecturer with this id does not exist');
     }
     return lecturer;
   }
@@ -41,10 +42,7 @@ export class LecturersService {
     });
 
     if (!lecturer) {
-      throw new HttpException(
-        'Lecturer with this email does not exist',
-        HttpStatus.NOT_FOUND,
-      );
+      throw new NotFoundException('Lecturer with this email does not exist');
     }
     return lecturer;
   }
@@ -57,10 +55,7 @@ export class LecturersService {
     });
 
     if (!lecturer) {
-      throw new HttpException(
-        'Lecturer with this username does not exist',
-        HttpStatus.NOT_FOUND,
-      );
+      throw new NotFoundException('Lecturer with this username does not exist');
     }
     return lecturer;
   }
@@ -80,12 +75,20 @@ export class LecturersService {
       user: {
         ...lecturer.user,
         // email is currently the only value allowed to be updated using the update lecturer endpoint
-        email: lecturerDto.user?.email ?? lecturer.user.email
+        email: lecturerDto.user?.email ?? lecturer.user.email,
       },
     };
 
     await this.lecturerRepository.save(lecturerUpdate);
 
     return await this.getById(lecturer.id);
+  }
+
+  async delete(id: string) {
+    const lecturer = await this.getById(id);
+    if (!lecturer) {
+      throw new NotFoundException('Lecturer does not exist!');
+    }
+    await this.lecturerRepository.delete(id);
   }
 }
