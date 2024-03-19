@@ -1,1 +1,1 @@
-web: ls -l && ls -l dist && npm run start:prod
+web: npm run start:prod
