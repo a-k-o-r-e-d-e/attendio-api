@@ -4,24 +4,12 @@ import { User } from './user.entity';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { NotFoundException } from '@nestjs/common';
-
-const testUserFactory = (inputs?: Partial<User>) => {
-  return {
-    id: '1',
-    username: 'testUser',
-    email: 'test@example.com',
-    password: 'password',
-    roles: [],
-    created_at: new Date(),
-    updated_at: new Date(),
-    ...inputs,
-  };
-};
+import { buildUserMock } from '../test/user.factory';
 
 describe('UsersService', () => {
   let service: UsersService;
   let repository: Repository<User>;
-  let mockUser = testUserFactory();
+  let mockUser = buildUserMock();
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -53,7 +41,7 @@ describe('UsersService', () => {
   describe('getById', () => {
     it('should return the user with the provided id', async () => {
       const userId = '1';
-      const user: User = testUserFactory();
+      const user: User = buildUserMock();
       jest.spyOn(repository, 'findOneBy').mockResolvedValue(user);
       expect(await service.getById(userId)).toBe(user);
     });
@@ -71,13 +59,13 @@ describe('UsersService', () => {
     const emailIdentifier = 'test@example.com';
     const usernameIdentifier = 'testUsername';
     it('should return the user with the provided email', async () => {
-      const user: User = testUserFactory({ email: emailIdentifier });
+      const user: User = buildUserMock({ email: emailIdentifier });
       jest.spyOn(repository, 'findOneBy').mockResolvedValue(user);
       expect(await service.getByUsernameOrEmail(emailIdentifier)).toBe(user);
     });
 
     it('should return the user with the provided username', async () => {
-      const user: User = testUserFactory({ username: usernameIdentifier });
+      const user: User = buildUserMock({ username: usernameIdentifier });
       jest.spyOn(repository, 'findOneBy').mockResolvedValue(user);
       expect(await service.getByUsernameOrEmail(usernameIdentifier)).toBe(user);
     });
