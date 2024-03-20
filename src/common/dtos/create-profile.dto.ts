@@ -5,7 +5,7 @@ import {
   IsUUID,
   ValidateNested,
 } from 'class-validator';
-import { CreateUserDto } from 'src/users/dto/create-user.dto';
+import { CreateUserDto } from '../../users/dto/create-user.dto';
 
 export abstract class CreateProfileDto {
   @IsNotEmpty()
