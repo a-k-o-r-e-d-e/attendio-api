@@ -3,7 +3,6 @@ import {
   HttpException,
   HttpStatus,
   Injectable,
-  InternalServerErrorException,
 } from '@nestjs/common';
 import { CreateProfileDto } from '../common/dtos/create-profile.dto';
 import { Role } from '../constants/enums';
@@ -39,7 +38,7 @@ export class AuthService {
         );
       }
 
-      throw new InternalServerErrorException('Something went wrong');
+      throw error;
     }
   }
 

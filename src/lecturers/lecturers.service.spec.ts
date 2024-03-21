@@ -9,10 +9,13 @@ import {
   buildUpdateLecturerDtoMock,
 } from '../test/lecturer.factory';
 import { NotFoundException } from '@nestjs/common';
+import { buildInstitutionMock } from '../test/institution.factory';
+import { InstitutionsService } from '../institutions/institutions.service';
 
 describe('LecturersService', () => {
   let service: LecturersService;
   let repository: Repository<Lecturer>;
+  let institutionService: InstitutionsService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -22,11 +25,18 @@ describe('LecturersService', () => {
           provide: getRepositoryToken(Lecturer),
           useClass: Repository,
         },
+        {
+          provide: InstitutionsService,
+          useValue: {
+            getById: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
     service = module.get<LecturersService>(LecturersService);
     repository = module.get<Repository<Lecturer>>(getRepositoryToken(Lecturer));
+    institutionService = module.get<InstitutionsService>(InstitutionsService);
   });
 
   afterEach(() => {
@@ -115,7 +125,12 @@ describe('LecturersService', () => {
   describe('create', () => {
     it('should create a new lecturer', async () => {
       const createLecturerDto = buildCreateLecturerDtoMock();
-      const expectedLecturer: Lecturer = buildLecturerMock(createLecturerDto);
+      const expectedLecturer: Lecturer = buildLecturerMock({
+        ...createLecturerDto,
+        institution: buildInstitutionMock({
+          id: createLecturerDto.institution,
+        }),
+      });
       jest.spyOn(repository, 'create').mockReturnValueOnce(expectedLecturer);
       const saveSpy = jest
         .spyOn(repository, 'save')
@@ -137,7 +152,9 @@ describe('LecturersService', () => {
         id: lecturerId,
         ...updateLecturerDto,
       });
-      const saveSpy = jest.spyOn(repository, 'save').mockResolvedValue(updatedLecturer);
+      const saveSpy = jest
+        .spyOn(repository, 'save')
+        .mockResolvedValue(updatedLecturer);
       jest
         .spyOn(repository, 'findOneBy')
         .mockResolvedValueOnce(updatedLecturer);
