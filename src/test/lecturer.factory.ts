@@ -1,9 +1,10 @@
 import { CreateLecturerDto } from '../lecturers/dto/create-lecturer.dto';
 import { Role } from '../constants/enums';
 import { Lecturer } from '../lecturers/lecturer.entity';
-import { User } from 'src/users/user.entity';
+import { User } from '../users/user.entity';
+import { UpdateLecturerDto } from '../lecturers/dto/update-lecturer.dto';
 
-interface LecturerPartial extends Partial<Omit<User, 'user'>> {
+interface LecturerPartial extends Partial<Omit<Lecturer, 'user'>> {
   user?: Partial<User>;
 }
 
@@ -51,6 +52,17 @@ export function buildCreateLecturerDtoMock(
       username: 'johndoe',
       email: 'johndoe@example.com',
       password: 'Password@123',
+      ...partial?.user,
+    },
+  };
+}
+
+export function buildUpdateLecturerDtoMock(
+  partial: Partial<UpdateLecturerDto>,
+): UpdateLecturerDto {
+  return {
+    ...partial,
+    user: {
       ...partial?.user,
     },
   };
