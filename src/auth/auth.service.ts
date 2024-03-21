@@ -14,11 +14,16 @@ import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '../users/user.entity';
 import JwtPayload from './interfaces/jwt-payload.interface';
+import { CreateStudentDto } from 'src/students/dto/create-student.dto';
+import { StudentsService } from 'src/students/students.service';
+import { Lecturer } from 'src/lecturers/lecturer.entity';
+import { Student } from 'src/students/entities/student.entity';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly lecturerService: LecturersService,
+    private readonly studentService: StudentsService,
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
   ) {}
@@ -30,6 +35,25 @@ export class AuthService {
       );
       const newLecturer = await this.lecturerService.create(lecturerDto);
       return newLecturer;
+    } catch (error) {
+      console.error('Error: ', error);
+      if (error?.code === PostgresErrorCode.UniqueViolation) {
+        throw new BadRequestException(
+          error?.detail ?? 'User with that email/username already exists',
+        );
+      }
+
+      throw error;
+    }
+  }
+
+  async registerStudent(studentDto: CreateStudentDto) {
+    try {
+      studentDto.user.password = await this.hashPassword(
+        studentDto.user.password,
+      );
+      const newStudent = await this.studentService.create(studentDto);
+      return newStudent;
     } catch (error) {
       console.error('Error: ', error);
       if (error?.code === PostgresErrorCode.UniqueViolation) {
@@ -78,13 +102,15 @@ export class AuthService {
   }
 
   async getProfile(username: string, userType: Role) {
-    let profile;
+    let profile: Lecturer|Student;
 
     if (userType === Role.Lecturer) {
       profile = await this.lecturerService.getByUsername(username);
+    } else if (userType === Role.Student) {
+      profile = await this.studentService.findOneByUsername(username);
     } else {
       throw new HttpException(
-        'Student Profile Not Implemented Yet',
+        `${userType} Profile Not Implemented Yet`,
         HttpStatus.EXPECTATION_FAILED,
       );
     }

@@ -14,6 +14,7 @@ import { LocalAuthGuard } from './guards/local-auth.guard';
 import RequestWithUser from './interfaces/request-with-user.interface';
 import { LoginDto } from './dto/login.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { CreateStudentDto } from 'src/students/dto/create-student.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -23,6 +24,13 @@ export class AuthController {
   async registerLecturer(@Body() createLecturerDto: CreateLecturerDto) {
     return new Lecturer(
       await this.authService.registerLecturer(createLecturerDto),
+    );
+  }
+
+  @Post('register/student')
+  async registerStudent(@Body() createStudentDto: CreateStudentDto) {
+    return new Lecturer(
+      await this.authService.registerStudent(createStudentDto),
     );
   }
 
@@ -38,5 +46,4 @@ export class AuthController {
   authenticate(@Req() req: RequestWithUser) {
     return req.user;
   }
-
 }

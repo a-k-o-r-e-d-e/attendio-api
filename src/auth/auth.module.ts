@@ -8,11 +8,13 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import EnvVars from 'src/constants/EnvVars';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { StudentsModule } from 'src/students/students.module';
 
 @Module({
   imports: [
     UsersModule,
     LecturersModule,
+    StudentsModule,
     PassportModule,
     JwtModule.register({
       global: true,
