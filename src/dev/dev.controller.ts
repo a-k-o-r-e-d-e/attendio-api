@@ -13,8 +13,19 @@ export class DevController {
   @Roles(Role.Admin)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Delete('lecturers/:id')
-  async delete(@Param('id') lecturerId: string): Promise<any> {
+  async deleteLecturer(@Param('id') lecturerId: string): Promise<any> {
     await this.devService.deleteLecturer(lecturerId);
+    return {
+      message: 'Successful',
+    };
+  }
+
+  //delete lecturer
+  @Roles(Role.Admin)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Delete('students/:id')
+  async deleteStudent(@Param('id') studentId: string): Promise<any> {
+    await this.devService.deleteStudent(studentId);
     return {
       message: 'Successful',
     };
