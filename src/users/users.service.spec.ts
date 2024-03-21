@@ -75,9 +75,7 @@ describe('UsersService', () => {
       jest.spyOn(repository, 'findOneBy').mockResolvedValue(undefined);
       await expect(
         service.getByUsernameOrEmail(userIdentifier),
-      ).rejects.toThrow(
-        new NotFoundException('User with this email does not exist'),
-      );
+      ).rejects.toThrow(NotFoundException);
     });
   });
 });

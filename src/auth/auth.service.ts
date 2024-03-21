@@ -53,7 +53,7 @@ export class AuthService {
       return user;
     } catch (error) {
       console.log('Error: ', error);
-      throw new BadRequestException('Wrong credentials provided');
+      throw error;
     }
   }
 
