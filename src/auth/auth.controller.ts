@@ -8,8 +8,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { CreateLecturerDto } from 'src/lecturers/dto/create-lecturer.dto';
-import { Lecturer } from 'src/lecturers/lecturer.entity';
+import { CreateLecturerDto } from '../lecturers/dto/create-lecturer.dto';
+import { Lecturer } from '../lecturers/lecturer.entity';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import RequestWithUser from './interfaces/request-with-user.interface';
 import { LoginDto } from './dto/login.dto';
