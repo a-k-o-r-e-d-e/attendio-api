@@ -16,7 +16,7 @@ export const baseDataSourceOptions: DataSourceOptions = {
       rejectUnauthorized: false,
     },
   },
-  synchronize: EnvVars.NodeEnv == 'production',
+  synchronize: true,
 
   migrationsRun: true,
   migrations: [

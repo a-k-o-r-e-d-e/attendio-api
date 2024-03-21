@@ -9,6 +9,7 @@ import {
 import { buildUserMock } from '../test/user.factory';
 import { Role } from '../constants/enums';
 import { buildLoginDTOMock } from '../test/auth.factory';
+import { buildInstitutionMock } from '../test/institution.factory';
 
 describe('AuthController', () => {
   let controller: AuthController;
@@ -53,7 +54,12 @@ describe('AuthController', () => {
 
     it('should register a new lecturer', async () => {
       const createLecturerDto = buildCreateLecturerDtoMock();
-      const createdLecturer = buildLecturerMock(createLecturerDto);
+      const createdLecturer = buildLecturerMock({
+        ...createLecturerDto,
+        institution: buildInstitutionMock({
+          id: createLecturerDto.institution,
+        }),
+      });
 
       jest
         .spyOn(authService, 'registerLecturer')
@@ -94,12 +100,10 @@ describe('AuthController', () => {
       const loginDto = buildLoginDTOMock();
       const accessToken = 'mockAccessToken';
       const lecturer = buildLecturerMock();
-      jest
-        .spyOn(authService, 'login')
-        .mockResolvedValueOnce({
-          access_token: accessToken,
-          profile: lecturer,
-        });
+      jest.spyOn(authService, 'login').mockResolvedValueOnce({
+        access_token: accessToken,
+        profile: lecturer,
+      });
 
       const result = await controller.login(request, loginDto);
 

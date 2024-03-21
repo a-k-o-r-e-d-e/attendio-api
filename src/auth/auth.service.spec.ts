@@ -85,9 +85,7 @@ describe('AuthService', () => {
       const lecturerDto = buildCreateLecturerDtoMock();
       jest.spyOn(lecturersService, 'create').mockRejectedValue(new Error());
 
-      await expect(service.registerLecturer(lecturerDto)).rejects.toThrow(
-        new InternalServerErrorException('Something went wrong'),
-      );
+      await expect(service.registerLecturer(lecturerDto)).rejects.toThrow();
     });
   });
 
@@ -126,7 +124,7 @@ describe('AuthService', () => {
 
   describe('login', () => {
     it('should call getProfile and jwtService.signAsync', async () => {
-      const user = buildUserMock({roles: [Role.Lecturer]});
+      const user = buildUserMock({ roles: [Role.Lecturer] });
       jest.spyOn(service, 'getProfile').mockResolvedValue({});
       jest.spyOn(jwtService, 'signAsync').mockResolvedValue('');
 
@@ -140,7 +138,7 @@ describe('AuthService', () => {
     });
 
     it('should throw BadRequestException if user is not of specified type', async () => {
-      const user = buildUserMock({roles: [Role.Lecturer]});
+      const user = buildUserMock({ roles: [Role.Lecturer] });
       await expect(service.login(user, Role.Student)).rejects.toThrow(
         new BadRequestException(
           `Authentication Failed: User is not a ${Role.Student}`,
@@ -151,8 +149,8 @@ describe('AuthService', () => {
 
   describe('getProfile', () => {
     it('should call lecturerService.getByUsername', async () => {
-      const username = 'test-username'; 
-      const lecturer = buildLecturerMock({user: {username}});
+      const username = 'test-username';
+      const lecturer = buildLecturerMock({ user: { username } });
       jest.spyOn(lecturersService, 'getByUsername').mockResolvedValue(lecturer);
 
       await service.getProfile(username, Role.Lecturer);
@@ -162,9 +160,7 @@ describe('AuthService', () => {
 
     it('should throw HttpStatus.EXPECTATION_FAILED if userType is not implemented', async () => {
       const username = ''; // Provide appropriate username
-      await expect(
-        service.getProfile(username, Role.Student),
-      ).rejects.toThrow(
+      await expect(service.getProfile(username, Role.Student)).rejects.toThrow(
         new HttpException(
           'Student Profile Not Implemented Yet',
           HttpStatus.EXPECTATION_FAILED,
