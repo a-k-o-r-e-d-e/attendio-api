@@ -5,12 +5,14 @@ import { Lecturer } from './lecturer.entity';
 import { CreateLecturerDto } from './dto/create-lecturer.dto';
 import { UpdateLecturerDto } from './dto/update-lecturer.dto';
 import { Role } from '../constants/enums';
+import { InstitutionsService } from '../institutions/institutions.service';
 
 @Injectable()
 export class LecturersService {
   constructor(
     @InjectRepository(Lecturer)
     private readonly lecturerRepository: Repository<Lecturer>,
+    private readonly institutionService: InstitutionsService,
   ) {}
 
   async findAll(): Promise<Lecturer[]> {
@@ -61,14 +63,26 @@ export class LecturersService {
     return lecturer;
   }
 
-  async create(lecturerDto: CreateLecturerDto) {
-    lecturerDto.user = {
-      ...lecturerDto.user,
-      roles: [Role.Lecturer],
-    } as any;
-    const newLecturer = this.lecturerRepository.create(lecturerDto);
+  async create(lecturerDto: CreateLecturerDto): Promise<Lecturer> {
+    const { institution: insititutionId, ...remainingDto } = lecturerDto;
 
-    return this.lecturerRepository.save(newLecturer);
+    const insititution = await this.institutionService.getById(insititutionId);
+
+    const createLecturerDto = {
+      ...remainingDto,
+      user: {
+        ...lecturerDto.user,
+        roles: [Role.Lecturer],
+      } as any,
+      insititution: insititution,
+      insititutionId
+    };
+
+    const newLecturer = this.lecturerRepository.create(createLecturerDto);
+
+    newLecturer.institution = insititution;
+
+    return await this.lecturerRepository.save(newLecturer);
   }
 
   async update(lecturer: Lecturer, lecturerDto: UpdateLecturerDto) {

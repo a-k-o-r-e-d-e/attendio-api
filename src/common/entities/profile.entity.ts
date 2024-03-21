@@ -11,10 +11,12 @@ import {
   Column,
   CreateDateColumn,
   JoinColumn,
+  ManyToOne,
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { Institution } from '../../institutions/insititution.entity';
 
 export abstract class Profile {
   @PrimaryGeneratedColumn('uuid')
@@ -48,6 +50,14 @@ export abstract class Profile {
   })
   @JoinColumn()
   user: User;
+
+  @ManyToOne(() => Institution, {
+    cascade: false,
+    eager: true, 
+    nullable: false,
+    onDelete: 'RESTRICT'
+  })
+  institution: Institution;
 
   @Column()
   @IsNotEmpty()

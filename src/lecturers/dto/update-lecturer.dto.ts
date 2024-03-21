@@ -5,7 +5,7 @@ import { IsOptional, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class UpdateLecturerDto extends PartialType(
-  OmitType(CreateLecturerDto, ['user', 'first_name', 'last_name']),
+  OmitType(CreateLecturerDto, ['user', 'first_name', 'last_name', 'institution']),
 ) {
   @IsOptional()
   @ValidateNested({})
