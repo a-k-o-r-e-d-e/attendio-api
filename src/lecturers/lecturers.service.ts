@@ -4,7 +4,7 @@ import { FindOptionsWhere, Repository } from 'typeorm';
 import { Lecturer } from './lecturer.entity';
 import { CreateLecturerDto } from './dto/create-lecturer.dto';
 import { UpdateLecturerDto } from './dto/update-lecturer.dto';
-import { Role } from 'src/constants/enums';
+import { Role } from '../constants/enums';
 
 @Injectable()
 export class LecturersService {

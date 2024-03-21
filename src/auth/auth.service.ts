@@ -1,13 +1,19 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { CreateProfileDto } from 'src/common/dtos/create-profile.dto';
-import { Role } from 'src/constants/enums';
-import { PostgresErrorCode } from 'src/database/postgres-errorcodes.enum';
-import { CreateLecturerDto } from 'src/lecturers/dto/create-lecturer.dto';
-import { LecturersService } from 'src/lecturers/lecturers.service';
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
+import { CreateProfileDto } from '../common/dtos/create-profile.dto';
+import { Role } from '../constants/enums';
+import { PostgresErrorCode } from '../database/postgres-errorcodes.enum';
+import { CreateLecturerDto } from '../lecturers/dto/create-lecturer.dto';
+import { LecturersService } from '../lecturers/lecturers.service';
 import * as bcrypt from 'bcrypt';
-import { UsersService } from 'src/users/users.service';
+import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
-import { User } from 'src/users/user.entity';
+import { User } from '../users/user.entity';
 import JwtPayload from './interfaces/jwt-payload.interface';
 
 @Injectable()
@@ -28,16 +34,12 @@ export class AuthService {
     } catch (error) {
       console.error('Error: ', error);
       if (error?.code === PostgresErrorCode.UniqueViolation) {
-        throw new HttpException(
+        throw new BadRequestException(
           error?.detail ?? 'User with that email/username already exists',
-          HttpStatus.BAD_REQUEST,
         );
       }
 
-      throw new HttpException(
-        'Something went wrong',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      throw new InternalServerErrorException('Something went wrong');
     }
   }
 
@@ -52,18 +54,14 @@ export class AuthService {
       return user;
     } catch (error) {
       console.log('Error: ', error);
-      throw new HttpException(
-        'Wrong credentials provided',
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new BadRequestException('Wrong credentials provided');
     }
   }
 
   async login(user: User, userType: Role) {
     if (![Role.Admin, userType].some((role) => user.roles.includes(role))) {
-      throw new HttpException(
+      throw new BadRequestException(
         `Authentication Failed: User is not a ${userType}`,
-        HttpStatus.BAD_REQUEST,
       );
     }
 
@@ -104,10 +102,7 @@ export class AuthService {
       hashedPassword,
     );
     if (!isPasswordMatching) {
-      throw new HttpException(
-        'Wrong credentials provided',
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new BadRequestException('Wrong credentials provided');
     }
   }
 

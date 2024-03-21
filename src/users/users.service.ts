@@ -1,8 +1,10 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { User } from './user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CreateUserDto } from './dto/create-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -18,10 +20,7 @@ export class UsersService {
   async getById(id: string): Promise<User> {
     const user = await this.userRepository.findOneBy({ id });
     if (!user) {
-      throw new HttpException(
-        'User with this id does not exist',
-        HttpStatus.NOT_FOUND,
-      );
+      throw new NotFoundException('User with this id does not exist');
     }
     return user;
   }
@@ -33,17 +32,8 @@ export class UsersService {
     ]);
 
     if (!user) {
-      throw new HttpException(
-        'User with this email does not exist',
-        HttpStatus.NOT_FOUND,
-      );
+      throw new NotFoundException('User with this email does not exist');
     }
     return user;
-  }
-
-  async create(userDto: CreateUserDto) {
-    const newUser = this.userRepository.create(userDto);
-
-    return this.userRepository.save(newUser);
   }
 }
