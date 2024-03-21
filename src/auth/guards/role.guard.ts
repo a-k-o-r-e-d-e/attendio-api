@@ -26,7 +26,7 @@ class RolesGuard implements CanActivate {
     const success = requiredRoles.some((role) => profile.user.roles?.includes(role));
 
     if (!success) {
-      throw new UnauthorizedException('Forbidden: Admin Only');
+      throw new UnauthorizedException(`Forbidden: ${requiredRoles} Only`);
     }
 
     return success;
