@@ -1,4 +1,4 @@
-import { Role } from 'src/constants/enums';
+import { Role } from '../../constants/enums';
 
 import {
   Injectable,

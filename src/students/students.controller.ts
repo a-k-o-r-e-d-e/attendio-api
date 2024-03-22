@@ -1,7 +1,7 @@
 import { Controller, Get, Body, Req, UseGuards, Put } from '@nestjs/common';
 import { StudentsService } from './students.service';
 import { UpdateStudentDto } from './dto/update-student.dto';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Student } from './entities/student.entity';
 import RolesGuard from '../auth/guards/role.guard';
 import { Roles } from '../auth/role.decorator';
@@ -14,7 +14,7 @@ export class StudentsController {
   @Roles(Role.Student)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Get('me')
-  getById(@Req() req): Promise<Student> {
+  findOneById(@Req() req): Promise<Student> {
     return req.user;
   }
 

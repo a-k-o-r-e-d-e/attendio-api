@@ -1,5 +1,5 @@
 import { SetMetadata } from '@nestjs/common';
-import { Role } from 'src/constants/enums';
+import { Role } from '../constants/enums';
 
 /// To be used with [RolesGuard] role.guard.ts
 export const ROLES_KEY = 'roles';

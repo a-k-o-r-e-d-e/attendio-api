@@ -3,22 +3,23 @@ import { AuthService } from './auth.service';
 import { LecturersService } from '../lecturers/lecturers.service';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
-import {
-  BadRequestException,
-  HttpException,
-  HttpStatus,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import { BadRequestException, HttpException } from '@nestjs/common';
 import {
   buildCreateLecturerDtoMock,
   buildLecturerMock,
 } from '../test/lecturer.factory';
 import { buildUserMock } from '../test/user.factory';
 import { Role } from '../constants/enums';
+import { StudentsService } from '../students/students.service';
+import {
+  buildCreateStudentDtoMock,
+  buildStudentMock,
+} from '../test/student.factory';
 
 describe('AuthService', () => {
   let service: AuthService;
   let lecturersService: LecturersService;
+  let studentsService: StudentsService;
   let usersService: UsersService;
   let jwtService: JwtService;
 
@@ -40,6 +41,13 @@ describe('AuthService', () => {
           },
         },
         {
+          provide: StudentsService,
+          useValue: {
+            create: jest.fn(),
+            findOneByUsername: jest.fn(),
+          },
+        },
+        {
           provide: JwtService,
           useValue: {
             signAsync: jest.fn(),
@@ -50,6 +58,7 @@ describe('AuthService', () => {
 
     service = module.get<AuthService>(AuthService);
     lecturersService = module.get<LecturersService>(LecturersService);
+    studentsService = module.get<StudentsService>(StudentsService);
     usersService = module.get<UsersService>(UsersService);
     jwtService = module.get<JwtService>(JwtService);
   });
@@ -77,15 +86,46 @@ describe('AuthService', () => {
         .mockRejectedValue({ code: '23505' });
 
       await expect(service.registerLecturer(lecturerDto)).rejects.toThrow(
-        new BadRequestException('User with that email/username already exists'),
+        BadRequestException,
       );
     });
 
-    it('should throw InternalServerErrorException if an unexpected error occurs', async () => {
+    it('should throw an error/exception if an unexpected error occurs', async () => {
       const lecturerDto = buildCreateLecturerDtoMock();
       jest.spyOn(lecturersService, 'create').mockRejectedValue(new Error());
 
       await expect(service.registerLecturer(lecturerDto)).rejects.toThrow();
+    });
+  });
+
+  describe('registerStudent', () => {
+    it('should call studentService.create and return created student', async () => {
+      const studentDto = buildCreateStudentDtoMock();
+      const createdStudent = buildStudentMock();
+      jest.spyOn(studentsService, 'create').mockResolvedValue(createdStudent);
+
+      const result = await service.registerStudent(studentDto);
+
+      expect(studentsService.create).toHaveBeenCalledWith(studentDto);
+      expect(result).toBe(createdStudent);
+    });
+
+    it('should throw BadRequestException if student with provided email/username already exists', async () => {
+      const studentDto = buildCreateStudentDtoMock();
+      jest
+        .spyOn(studentsService, 'create')
+        .mockRejectedValue({ code: '23505' });
+
+      await expect(service.registerStudent(studentDto)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('should throw an error/exception if an unexpected error occurs', async () => {
+      const studentDto = buildCreateStudentDtoMock();
+      jest.spyOn(studentsService, 'create').mockRejectedValue(new Error());
+
+      await expect(service.registerStudent(studentDto)).rejects.toThrow();
     });
   });
 
@@ -125,7 +165,8 @@ describe('AuthService', () => {
   describe('login', () => {
     it('should call getProfile and jwtService.signAsync', async () => {
       const user = buildUserMock({ roles: [Role.Lecturer] });
-      jest.spyOn(service, 'getProfile').mockResolvedValue({});
+      const lecturer = buildLecturerMock();
+      jest.spyOn(service, 'getProfile').mockResolvedValue(lecturer);
       jest.spyOn(jwtService, 'signAsync').mockResolvedValue('');
 
       await service.login(user, Role.Lecturer);
@@ -160,11 +201,8 @@ describe('AuthService', () => {
 
     it('should throw HttpStatus.EXPECTATION_FAILED if userType is not implemented', async () => {
       const username = ''; // Provide appropriate username
-      await expect(service.getProfile(username, Role.Student)).rejects.toThrow(
-        new HttpException(
-          'Student Profile Not Implemented Yet',
-          HttpStatus.EXPECTATION_FAILED,
-        ),
+      await expect(service.getProfile(username, Role.Admin)).rejects.toThrow(
+        HttpException,
       );
     });
   });

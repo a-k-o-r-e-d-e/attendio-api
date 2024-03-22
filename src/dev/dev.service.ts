@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { LecturersService } from 'src/lecturers/lecturers.service';
-import { StudentsService } from 'src/students/students.service';
+import { LecturersService } from '../lecturers/lecturers.service';
+import { StudentsService } from '../students/students.service';
 
 @Injectable()
 export class DevService {

@@ -14,7 +14,7 @@ import { LocalAuthGuard } from './guards/local-auth.guard';
 import RequestWithUser from './interfaces/request-with-user.interface';
 import { LoginDto } from './dto/login.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { CreateStudentDto } from 'src/students/dto/create-student.dto';
+import { CreateStudentDto } from '../students/dto/create-student.dto';
 
 @Controller('auth')
 export class AuthController {

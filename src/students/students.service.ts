@@ -4,7 +4,7 @@ import { UpdateStudentDto } from './dto/update-student.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Student } from './entities/student.entity';
 import { FindOptionsWhere, Repository } from 'typeorm';
-import { InstitutionsService } from 'src/institutions/institutions.service';
+import { InstitutionsService } from '../institutions/institutions.service';
 import { Role } from '../constants/enums';
 
 @Injectable()

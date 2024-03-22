@@ -14,10 +14,10 @@ import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '../users/user.entity';
 import JwtPayload from './interfaces/jwt-payload.interface';
-import { CreateStudentDto } from 'src/students/dto/create-student.dto';
-import { StudentsService } from 'src/students/students.service';
-import { Lecturer } from 'src/lecturers/lecturer.entity';
-import { Student } from 'src/students/entities/student.entity';
+import { CreateStudentDto } from '../students/dto/create-student.dto';
+import { StudentsService } from '../students/students.service';
+import { Lecturer } from '../lecturers/lecturer.entity';
+import { Student } from '../students/entities/student.entity';
 
 @Injectable()
 export class AuthService {
