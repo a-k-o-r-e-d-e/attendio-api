@@ -1,4 +1,4 @@
-import { Role } from 'src/constants/enums';
+import { Role } from '../../constants/enums';
 
 import {
   Injectable,
@@ -26,7 +26,7 @@ class RolesGuard implements CanActivate {
     const success = requiredRoles.some((role) => profile.user.roles?.includes(role));
 
     if (!success) {
-      throw new UnauthorizedException('Forbidden: Admin Only');
+      throw new UnauthorizedException(`Forbidden: ${requiredRoles} Only`);
     }
 
     return success;
