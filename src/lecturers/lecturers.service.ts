@@ -66,7 +66,8 @@ export class LecturersService {
   async create(lecturerDto: CreateLecturerDto): Promise<Lecturer> {
     const { institution: insititutionId, ...remainingDto } = lecturerDto;
 
-    const insititution = await this.institutionService.getById(insititutionId);
+    const insititution =
+      await this.institutionService.findOneById(insititutionId);
 
     const createLecturerDto = {
       ...remainingDto,

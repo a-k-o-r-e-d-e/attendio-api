@@ -18,7 +18,8 @@ export class StudentsService {
   async create(createStudentDto: CreateStudentDto): Promise<Student> {
     const { institution: insititutionId, ...remainingDto } = createStudentDto;
 
-    const insititution = await this.institutionService.getById(insititutionId);
+    const insititution =
+      await this.institutionService.findOneById(insititutionId);
 
     const createStudentObj = {
       ...remainingDto,

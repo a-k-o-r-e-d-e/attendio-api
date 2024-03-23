@@ -24,7 +24,7 @@ export class InstitutionsService {
     return institution;
   }
 
-  async getById(id: string): Promise<Institution> {
+  async findOneById(id: string): Promise<Institution> {
     const lecturer = await this.findOne({ id });
     if (!lecturer) {
       throw new NotFoundException('Institution with this id does not exist');
