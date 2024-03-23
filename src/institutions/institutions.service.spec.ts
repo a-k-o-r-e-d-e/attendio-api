@@ -102,7 +102,7 @@ describe('InstitutionsService', () => {
     });
   });
 
-  describe('getById', () => {
+  describe('findOneById', () => {
     it('should find institution by given id', async () => {
       const mockId = 'mock-id';
       const mockInstitution: Institution = buildInstitutionMock({ id: mockId });
@@ -111,7 +111,7 @@ describe('InstitutionsService', () => {
         .spyOn(service as any, 'findOne')
         .mockResolvedValueOnce(mockInstitution);
 
-      const result = await service.getById(mockId);
+      const result = await service.findOneById(mockId);
 
       expect(result).toEqual(mockInstitution);
     });
@@ -121,7 +121,9 @@ describe('InstitutionsService', () => {
 
       jest.spyOn(service as any, 'findOne').mockResolvedValueOnce(undefined);
 
-      await expect(service.getById(mockId)).rejects.toThrow(NotFoundException);
+      await expect(service.findOneById(mockId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 });

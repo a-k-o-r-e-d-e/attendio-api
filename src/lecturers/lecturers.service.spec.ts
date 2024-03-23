@@ -15,7 +15,6 @@ import { InstitutionsService } from '../institutions/institutions.service';
 describe('LecturersService', () => {
   let service: LecturersService;
   let repository: Repository<Lecturer>;
-  let institutionService: InstitutionsService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -28,7 +27,7 @@ describe('LecturersService', () => {
         {
           provide: InstitutionsService,
           useValue: {
-            getById: jest.fn(),
+            findOneById: jest.fn(),
           },
         },
       ],
@@ -36,7 +35,6 @@ describe('LecturersService', () => {
 
     service = module.get<LecturersService>(LecturersService);
     repository = module.get<Repository<Lecturer>>(getRepositoryToken(Lecturer));
-    institutionService = module.get<InstitutionsService>(InstitutionsService);
   });
 
   afterEach(() => {
@@ -58,13 +56,13 @@ describe('LecturersService', () => {
     });
   });
 
-  describe('getById', () => {
+  describe('findOneById', () => {
     it('should return a lecturer by ID if found', async () => {
       const lecturerId = '123';
       const expectedLecturer: Lecturer = buildLecturerMock({ id: lecturerId });
       jest.spyOn(repository, 'findOneBy').mockResolvedValue(expectedLecturer);
 
-      const result = await service.getById(lecturerId);
+      const result = await service.findOneById(lecturerId);
 
       expect(result).toEqual(expectedLecturer);
     });
@@ -72,7 +70,9 @@ describe('LecturersService', () => {
     it('should throw NotFoundException if lecturer with ID is not found', async () => {
       jest.spyOn(repository, 'findOneBy').mockResolvedValue(undefined);
 
-      await expect(service.getById('123')).rejects.toThrow(NotFoundException);
+      await expect(service.findOneById('123')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -84,7 +84,7 @@ describe('LecturersService', () => {
       });
       jest.spyOn(repository, 'findOneBy').mockResolvedValue(expectedLecturer);
 
-      const result = await service.getByEmail(testEmail);
+      const result = await service.findOneByEmail(testEmail);
 
       expect(result).toEqual(expectedLecturer);
     });
@@ -92,7 +92,7 @@ describe('LecturersService', () => {
     it('should throw NotFoundException if lecturer with email is not found', async () => {
       jest.spyOn(repository, 'findOneBy').mockResolvedValue(undefined);
 
-      await expect(service.getByEmail('test@example.com')).rejects.toThrow(
+      await expect(service.findOneByEmail('test@example.com')).rejects.toThrow(
         NotFoundException,
       );
     });
@@ -108,7 +108,7 @@ describe('LecturersService', () => {
         .spyOn(repository, 'findOneBy')
         .mockResolvedValueOnce(expectedLecturer);
 
-      const result = await service.getByUsername(username);
+      const result = await service.findOneByUsername(username);
 
       expect(result).toEqual(expectedLecturer);
     });
@@ -116,7 +116,7 @@ describe('LecturersService', () => {
     it('should throw NotFoundException if lecturer with username is not found', async () => {
       jest.spyOn(repository, 'findOneBy').mockResolvedValueOnce(undefined);
 
-      await expect(service.getByUsername('testuser')).rejects.toThrow(
+      await expect(service.findOneByUsername('testuser')).rejects.toThrow(
         NotFoundException,
       );
     });

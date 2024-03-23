@@ -13,7 +13,6 @@ import {
 describe('StudentsService', () => {
   let service: StudentsService;
   let studentRepository: Repository<Student>;
-  let institutionService: InstitutionsService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -26,7 +25,7 @@ describe('StudentsService', () => {
         {
           provide: InstitutionsService,
           useValue: {
-            getById: jest.fn(),
+            findOneById: jest.fn(),
           },
         },
       ],
@@ -36,7 +35,6 @@ describe('StudentsService', () => {
     studentRepository = module.get<Repository<Student>>(
       getRepositoryToken(Student),
     );
-    institutionService = module.get<InstitutionsService>(InstitutionsService);
   });
 
   afterEach(() => {

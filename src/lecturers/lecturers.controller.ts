@@ -2,6 +2,8 @@ import {
   Body,
   Controller,
   Get,
+  Param,
+  ParseUUIDPipe,
   Put,
   Req,
   UseGuards,
@@ -21,7 +23,7 @@ export class LecturersController {
   @Roles(Role.Lecturer)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Get('me')
-  getById(@Req() req): Promise<Lecturer> {
+  getMyProfile(@Req() req): Promise<Lecturer> {
     return req.user;
   }
 
@@ -33,5 +35,13 @@ export class LecturersController {
     @Req() req,
   ): Promise<Lecturer> {
     return this.lecturerService.update(req.user, updateLecturerDto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':id')
+  async findOneById(
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ): Promise<Lecturer> {
+    return this.lecturerService.findOneById(id);
   }
 }

@@ -29,7 +29,7 @@ export class LecturersService {
     return lecturer;
   }
 
-  async getById(id: string): Promise<Lecturer> {
+  async findOneById(id: string): Promise<Lecturer> {
     const lecturer = await this.findOne({ id });
     if (!lecturer) {
       throw new NotFoundException('Lecturer with this id does not exist');
@@ -37,7 +37,7 @@ export class LecturersService {
     return lecturer;
   }
 
-  async getByEmail(email: string): Promise<Lecturer> {
+  async findOneByEmail(email: string): Promise<Lecturer> {
     const lecturer = await this.findOne({
       user: {
         email,
@@ -50,7 +50,7 @@ export class LecturersService {
     return lecturer;
   }
 
-  async getByUsername(username: string): Promise<Lecturer> {
+  async findOneByUsername(username: string): Promise<Lecturer> {
     const lecturer = await this.findOne({
       user: {
         username,
@@ -66,7 +66,8 @@ export class LecturersService {
   async create(lecturerDto: CreateLecturerDto): Promise<Lecturer> {
     const { institution: insititutionId, ...remainingDto } = lecturerDto;
 
-    const insititution = await this.institutionService.getById(insititutionId);
+    const insititution =
+      await this.institutionService.findOneById(insititutionId);
 
     const createLecturerDto = {
       ...remainingDto,
@@ -75,7 +76,7 @@ export class LecturersService {
         roles: [Role.Lecturer],
       } as any,
       insititution: insititution,
-      insititutionId
+      insititutionId,
     };
 
     const newLecturer = this.lecturerRepository.create(createLecturerDto);
@@ -100,11 +101,11 @@ export class LecturersService {
 
     await this.lecturerRepository.save(lecturerUpdate);
 
-    return await this.getById(lecturer.id);
+    return await this.findOneById(lecturer.id);
   }
 
   async delete(id: string) {
-    const lecturer = await this.getById(id);
+    const lecturer = await this.findOneById(id);
     if (!lecturer) {
       throw new NotFoundException('Lecturer does not exist!');
     }

@@ -1,4 +1,4 @@
-import { Controller, Get, Body, Req, UseGuards, Put } from '@nestjs/common';
+import { Controller, Get, Body, Req, UseGuards, Put, ParseUUIDPipe, Param } from '@nestjs/common';
 import { StudentsService } from './students.service';
 import { UpdateStudentDto } from './dto/update-student.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -14,7 +14,7 @@ export class StudentsController {
   @Roles(Role.Student)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Get('me')
-  findOneById(@Req() req): Promise<Student> {
+  getMyProfile(@Req() req): Promise<Student> {
     return req.user;
   }
 
@@ -26,5 +26,13 @@ export class StudentsController {
     @Req() req,
   ): Promise<Student> {
     return this.studentsService.update(req.user, updateStudentDto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':id')
+  async findOneById(
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ): Promise<Student> {
+    return this.studentsService.findOneById(id);
   }
 }

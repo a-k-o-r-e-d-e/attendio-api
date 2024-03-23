@@ -18,6 +18,7 @@ describe('StudentsController', () => {
           provide: StudentsService,
           useValue: {
             update: jest.fn(),
+            findOneById: jest.fn()
           },
         },
       ],
@@ -31,19 +32,33 @@ describe('StudentsController', () => {
     expect(controller).toBeDefined();
   });
 
-  describe('getById', () => {
-    it('should return lecturer by ID', async () => {
+  describe('getMyProfile', () => {
+    it('should return student by ID', async () => {
       const mockStudent = buildStudentMock();
       const req = { user: mockStudent };
 
-      const result = await controller.findOneById(req);
+      const result = await controller.getMyProfile(req);
 
       expect(result).toEqual(mockStudent);
     });
   });
 
+  describe('findOneById', () => {
+    it('should return a student by id', async () => {
+      const studentId = 'student-id';
+      const mockStudent = buildStudentMock({ id: studentId });
+
+      jest.spyOn(service, 'findOneById').mockResolvedValueOnce(mockStudent);
+
+      const result = await controller.findOneById(studentId);
+
+      expect(result).toBe(mockStudent);
+      expect(service.findOneById).toHaveBeenCalledWith(studentId);
+    });
+  });
+
   describe('editStudentProfile', () => {
-    it('should update lecturer profile', async () => {
+    it('should update student profile', async () => {
       const mockStudent = buildStudentMock();
       const mockUpdateDto = buildUpdateStudentDtoMock({ title: 'Mrs' });
       const mockUpdatedStudent = buildStudentMock(mockUpdateDto);
