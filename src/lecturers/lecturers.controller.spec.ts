@@ -44,7 +44,7 @@ describe('LecturersController', () => {
   });
 
   describe('findOneById', () => {
-    it('should return a course by id', async () => {
+    it('should return a lecturer by id', async () => {
       const lecturerId = 'lecturer-id';
       const mockLecturer = buildLecturerMock({ id: lecturerId });
 

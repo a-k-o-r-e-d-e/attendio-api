@@ -10,6 +10,7 @@ import {
 } from '../test/lecturer.factory';
 import { NotFoundException } from '@nestjs/common';
 import { buildInstitutionMock } from '../test/institution.factory';
+import { InstitutionsService } from '../institutions/institutions.service';
 
 describe('LecturersService', () => {
   let service: LecturersService;
@@ -22,6 +23,12 @@ describe('LecturersService', () => {
         {
           provide: getRepositoryToken(Lecturer),
           useClass: Repository,
+        },
+        {
+          provide: InstitutionsService,
+          useValue: {
+            findOneById: jest.fn(),
+          },
         },
       ],
     }).compile();
