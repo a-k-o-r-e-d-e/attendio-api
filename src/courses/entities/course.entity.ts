@@ -63,7 +63,7 @@ export class Course {
   })
   lecturer: Lecturer;
 
-  @Column()
+  @Column({default: 70.00})
   @IsNumber({ allowInfinity: false, allowNaN: false, maxDecimalPlaces: 2 })
   @Max(100)
   @Min(0)
