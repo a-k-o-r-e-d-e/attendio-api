@@ -11,10 +11,11 @@ import { AuthService } from './auth.service';
 import { CreateLecturerDto } from '../lecturers/dto/create-lecturer.dto';
 import { Lecturer } from '../lecturers/lecturer.entity';
 import { LocalAuthGuard } from './guards/local-auth.guard';
-import RequestWithUser from './interfaces/request-with-user.interface';
+import {RequestWithUser, RequestWithProfile} from './interfaces/request-with-user.interface';
 import { LoginDto } from './dto/login.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { CreateStudentDto } from '../students/dto/create-student.dto';
+import { Role } from '../constants/enums';
 
 @Controller('auth')
 export class AuthController {
@@ -43,7 +44,10 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get('token')
-  authenticate(@Req() req: RequestWithUser) {
-    return req.user;
+  authenticate(@Req() req: RequestWithProfile) {
+    return this.authService.login(
+      req.user.user,
+      req.user.user.roles.find((val) => val !== Role.Admin),
+    );
   }
 }
