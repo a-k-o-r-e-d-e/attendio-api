@@ -28,7 +28,7 @@ describe('CoursesService', () => {
         {
           provide: LecturersService,
           useValue: {
-            getById: jest.fn(),
+            findOneById: jest.fn(),
           },
         },
       ],
@@ -55,9 +55,11 @@ describe('CoursesService', () => {
       const lecturer = buildLecturerMock();
       const mockCourse = buildCourseMock(createCourseDto);
 
-      jest.spyOn(lecturerService, 'getById').mockResolvedValueOnce(lecturer);
       jest.spyOn(courseRepository, 'create').mockReturnValueOnce(mockCourse);
       jest.spyOn(courseRepository, 'save').mockResolvedValueOnce(mockCourse);
+      jest
+        .spyOn(lecturerService, 'findOneById')
+        .mockResolvedValueOnce(lecturer);
 
       const result = await service.create(createCourseDto, lecturer);
 

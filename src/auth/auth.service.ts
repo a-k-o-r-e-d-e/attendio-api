@@ -102,10 +102,10 @@ export class AuthService {
   }
 
   async getProfile(username: string, userType: Role) {
-    let profile: Lecturer|Student;
+    let profile: Lecturer | Student;
 
     if (userType === Role.Lecturer) {
-      profile = await this.lecturerService.getByUsername(username);
+      profile = await this.lecturerService.findOneByUsername(username);
     } else if (userType === Role.Student) {
       profile = await this.studentService.findOneByUsername(username);
     } else {

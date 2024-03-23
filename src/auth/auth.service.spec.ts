@@ -31,7 +31,7 @@ describe('AuthService', () => {
           provide: LecturersService,
           useValue: {
             create: jest.fn(),
-            getByUsername: jest.fn(),
+            findOneByUsername: jest.fn(),
           },
         },
         {
@@ -192,11 +192,13 @@ describe('AuthService', () => {
     it('should call lecturerService.getByUsername', async () => {
       const username = 'test-username';
       const lecturer = buildLecturerMock({ user: { username } });
-      jest.spyOn(lecturersService, 'getByUsername').mockResolvedValue(lecturer);
+      jest
+        .spyOn(lecturersService, 'findOneByUsername')
+        .mockResolvedValue(lecturer);
 
       await service.getProfile(username, Role.Lecturer);
 
-      expect(lecturersService.getByUsername).toHaveBeenCalledWith(username);
+      expect(lecturersService.findOneByUsername).toHaveBeenCalledWith(username);
     });
 
     it('should throw HttpStatus.EXPECTATION_FAILED if userType is not implemented', async () => {

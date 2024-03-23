@@ -20,7 +20,7 @@ export class CoursesService {
   async create(createCourseDto: CreateCourseDto, lecturer: Lecturer) {
     const { ...remainingDto } = createCourseDto;
 
-    await this.lecturerService.getById(lecturer.id);
+    await this.lecturerService.findOneById(lecturer.id);
 
     const createCourseObj = {
       ...remainingDto,
