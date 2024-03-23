@@ -4,6 +4,7 @@ import { buildUserMock } from './user.factory';
 import { buildInstitutionMock } from './institution.factory';
 import { CreateStudentDto } from '../students/dto/create-student.dto';
 import { UpdateStudentDto } from '../students/dto/update-student.dto';
+import { Role } from '../constants/enums';
 
 interface StudentPartial extends Partial<Omit<Student, 'user'>> {
   user?: Partial<User>;
@@ -25,6 +26,7 @@ export function buildStudentMock(partial?: StudentPartial): Student {
     ...partial,
     user: {
       ...buildUserMock(partial?.user),
+      roles: [Role.Student],
     },
     institution: {
       ...buildInstitutionMock(partial?.institution),

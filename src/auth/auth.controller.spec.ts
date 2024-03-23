@@ -10,6 +10,7 @@ import { buildUserMock } from '../test/user.factory';
 import { Role } from '../constants/enums';
 import { buildLoginDTOMock } from '../test/auth.factory';
 import { buildInstitutionMock } from '../test/institution.factory';
+import { buildCreateStudentDtoMock, buildStudentMock } from '../test/student.factory';
 
 describe('AuthController', () => {
   let controller: AuthController;
@@ -23,6 +24,7 @@ describe('AuthController', () => {
           provide: AuthService,
           useValue: {
             registerLecturer: jest.fn(),
+            registerStudent: jest.fn(),
             login: jest.fn(),
           },
         },
@@ -39,6 +41,10 @@ describe('AuthController', () => {
 
   it('should be defined', () => {
     expect(controller).toBeDefined();
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   describe('registerLecturer', () => {
@@ -71,6 +77,39 @@ describe('AuthController', () => {
         createLecturerDto,
       );
       expect(result).toEqual(createdLecturer);
+    });
+  });
+
+  describe('registerStudent', () => {
+    it('should call authService.registerStudent with the provided studentDto', async () => {
+      const createStudentDto = buildCreateStudentDtoMock();
+
+      await controller.registerStudent(createStudentDto);
+
+      expect(authService.registerStudent).toHaveBeenCalledWith(
+        createStudentDto,
+      );
+    });
+
+    it('should register a new student', async () => {
+      const createStudentDto = buildCreateStudentDtoMock();
+      const createdStudent = buildStudentMock({
+        ...createStudentDto,
+        institution: buildInstitutionMock({
+          id: createStudentDto.institution,
+        }),
+      });
+
+      jest
+        .spyOn(authService, 'registerStudent')
+        .mockResolvedValueOnce(createdStudent);
+
+      const result = await controller.registerStudent(createStudentDto);
+
+      expect(authService.registerStudent).toHaveBeenCalledWith(
+        createStudentDto,
+      );
+      expect(result).toEqual(createdStudent);
     });
   });
 
@@ -112,6 +151,26 @@ describe('AuthController', () => {
         loginDto.user_type,
       );
       expect(result).toEqual({ access_token: accessToken, profile: lecturer });
+    });
+  });
+
+  describe('authenticate', () => {
+    it('should authenticate user', async () => {
+      const student = buildStudentMock();
+      const req = {
+        user: student
+      } as any;
+      
+      const loginResult = {
+        access_token: 'mockAccessToken',
+        profile: student,
+      };
+      jest.spyOn(authService, 'login').mockResolvedValueOnce(loginResult);
+
+      const result = await controller.authenticate(req);
+
+      expect(result).toBe(loginResult);
+      expect(authService.login).toHaveBeenCalledWith(req.user.user, Role.Student);
     });
   });
 });
