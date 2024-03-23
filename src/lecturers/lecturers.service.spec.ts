@@ -10,12 +10,10 @@ import {
 } from '../test/lecturer.factory';
 import { NotFoundException } from '@nestjs/common';
 import { buildInstitutionMock } from '../test/institution.factory';
-import { InstitutionsService } from '../institutions/institutions.service';
 
 describe('LecturersService', () => {
   let service: LecturersService;
   let repository: Repository<Lecturer>;
-  let institutionService: InstitutionsService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -25,18 +23,11 @@ describe('LecturersService', () => {
           provide: getRepositoryToken(Lecturer),
           useClass: Repository,
         },
-        {
-          provide: InstitutionsService,
-          useValue: {
-            getById: jest.fn(),
-          },
-        },
       ],
     }).compile();
 
     service = module.get<LecturersService>(LecturersService);
     repository = module.get<Repository<Lecturer>>(getRepositoryToken(Lecturer));
-    institutionService = module.get<InstitutionsService>(InstitutionsService);
   });
 
   afterEach(() => {
@@ -58,7 +49,7 @@ describe('LecturersService', () => {
     });
   });
 
-  describe('getById', () => {
+  describe('findOneById', () => {
     it('should return a lecturer by ID if found', async () => {
       const lecturerId = '123';
       const expectedLecturer: Lecturer = buildLecturerMock({ id: lecturerId });
