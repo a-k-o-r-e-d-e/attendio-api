@@ -9,3 +9,9 @@ export enum InstitutionType {
   Polytechnic = 'polytechnic',
   College = 'college',
 }
+
+export enum CourseCategory {
+  Required = 'required',
+  Elective = 'elective',
+  Compulsory = 'compulsory',
+}
