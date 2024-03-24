@@ -29,6 +29,7 @@ describe('CoursesController', () => {
             remove: jest.fn(),
             enrollStudent: jest.fn(),
             fetchEnrolledStudents: jest.fn(),
+            unenrollStudent: jest.fn(),
           },
         },
       ],
@@ -172,7 +173,7 @@ describe('CoursesController', () => {
         .mockRejectedValueOnce(new BadRequestException());
 
       await expect(controller.enrollStudent(courseId, req)).rejects.toThrow(
-        BadRequestException
+        BadRequestException,
       );
     });
   });
@@ -204,6 +205,29 @@ describe('CoursesController', () => {
 
       await expect(controller.fetchEnrolledStudents(courseId)).rejects.toThrow(
         NotFoundException,
+      );
+    });
+  });
+
+  describe('unenrollStudent', () => {
+    it('should unenroll a student from a course', async () => {
+      const courseId = 'course-id';
+      const studentId = 'student-id';
+      const student = buildStudentMock({ id: studentId });
+      const requestMock = {
+        user: student,
+      } as any;
+
+      jest
+        .spyOn(coursesService, 'unenrollStudent')
+        .mockResolvedValueOnce(undefined);
+
+      const result = await controller.unenrollStudent(courseId, requestMock);
+
+      expect(result).toEqual({ message: 'Successful' });
+      expect(coursesService.unenrollStudent).toHaveBeenCalledWith(
+        courseId,
+        student,
       );
     });
   });

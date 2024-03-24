@@ -7,6 +7,7 @@ import { LecturersService } from '../lecturers/lecturers.service';
 import {
   buildCourseMock,
   buildCreateCourseDtoMock,
+  buildStudentCourseEnrollmentMock,
   buildUpdateCourseDtoMock,
 } from '../test/course.factory';
 import { buildLecturerMock } from '../test/lecturer.factory';
@@ -319,6 +320,58 @@ describe('CoursesService', () => {
         coursesEnrollments: { courseId: course.id },
       });
       expect(result).toBe(enrolledStudents);
+    });
+  });
+
+  describe('unenrollStudent', () => {
+    it('should unenroll a student from a course', async () => {
+      const courseId = 'course-id';
+      const studentId = 'student-id';
+      const course = buildCourseMock({ id: courseId });
+      const student = buildStudentMock({ id: studentId });
+      const studentEnrollment = buildStudentCourseEnrollmentMock({
+        id: 'enrollment-id',
+        courseId,
+        studentId,
+        course,
+        student,
+      });
+
+      jest.spyOn(service, 'findOneById').mockResolvedValueOnce(course);
+      jest
+        .spyOn(studentEnrollmentRepo, 'findOneBy')
+        .mockResolvedValueOnce(studentEnrollment);
+      jest
+        .spyOn(studentEnrollmentRepo, 'delete')
+        .mockResolvedValueOnce(undefined);
+
+      await expect(
+        service.unenrollStudent(courseId, student),
+      ).resolves.not.toThrow();
+      expect(service.findOneById).toHaveBeenCalledWith(courseId);
+      expect(studentEnrollmentRepo.findOneBy).toHaveBeenCalledWith({
+        courseId,
+        studentId,
+      });
+      expect(studentEnrollmentRepo.delete).toHaveBeenCalledWith(
+        'enrollment-id',
+      );
+    });
+
+    it('should throw NotFoundException if student is not enrolled in the course', async () => {
+      const courseId = 'course-id';
+      const studentId = 'student-id';
+      const course = buildCourseMock({ id: courseId });
+      const student = buildStudentMock({ id: studentId });
+
+      jest.spyOn(service, 'findOneById').mockResolvedValueOnce(course);
+      jest
+        .spyOn(studentEnrollmentRepo, 'findOneBy')
+        .mockResolvedValueOnce(undefined);
+
+      await expect(service.unenrollStudent(courseId, student)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 });

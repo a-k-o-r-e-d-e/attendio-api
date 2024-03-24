@@ -144,6 +144,22 @@ export class CoursesService {
     }
   }
 
+  async unenrollStudent(courseId: string, student: Student) {
+    // check if course exists
+    const course = await this.findOneById(courseId);
+    // check if student is enrolled for course
+    const studentEnrollment = await this.studentEnrollmentRepo.findOneBy({
+      courseId: course.id,
+      studentId: student.id,
+    });
+
+    if (!studentEnrollment) {
+      throw new NotFoundException('Student is not enrolled to course');
+    }
+
+    await this.studentEnrollmentRepo.delete(studentEnrollment.id);
+  }
+
   async fetchEnrolledStudents(courseId: string) {
     const course = await this.findOneById(courseId);
     return await this.studentService.findAll({

@@ -25,11 +25,13 @@ export class StudentCourseEnrollment {
 
   @ManyToOne(() => Student, (student) => student.coursesEnrollments, {
     eager: true,
-    cascade: true,
+    onDelete: 'CASCADE',
   })
   public student: Student;
 
-  @ManyToOne(() => Course, (course) => course.studentsEnrollments)
+  @ManyToOne(() => Course, (course) => course.studentsEnrollments, {
+    onDelete: 'CASCADE',
+  })
   public course: Course;
 
   @CreateDateColumn({ select: false })

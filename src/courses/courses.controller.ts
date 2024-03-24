@@ -82,6 +82,18 @@ export class CoursesController {
     return { message: 'Successful' };
   }
 
+  @Roles(Role.Student)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Delete(':id/unenroll')
+  async unenrollStudent(
+    @Param('id', new ParseUUIDPipe()) courseId: string,
+    @Req() req: RequestWithProfile,
+  ) {
+    await this.coursesService.unenrollStudent(courseId, req.user as Student);
+
+    return { message: 'Successful' };
+  }
+
   @Roles(Role.Lecturer)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Get(':id/students')
