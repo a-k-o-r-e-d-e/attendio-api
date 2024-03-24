@@ -8,7 +8,7 @@ import {
 } from '../test/course.factory';
 import { buildLecturerMock } from '../test/lecturer.factory';
 import { buildStudentMock } from '../test/student.factory';
-import { NotFoundException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 
 describe('CoursesController', () => {
   let controller: CoursesController;
@@ -27,6 +27,8 @@ describe('CoursesController', () => {
             findOneById: jest.fn(),
             update: jest.fn(),
             remove: jest.fn(),
+            enrollStudent: jest.fn(),
+            fetchEnrolledStudents: jest.fn(),
           },
         },
       ],
@@ -60,76 +62,149 @@ describe('CoursesController', () => {
         req.user,
       );
     });
-
   });
 
-   describe('findAll', () => {
-     it('should return all courses for a user', async () => {
-       const user = buildStudentMock();
-       const mockCourses = [buildCourseMock(), buildCourseMock()];
-       jest.spyOn(coursesService, 'findAll').mockResolvedValueOnce(mockCourses);
+  describe('findAll', () => {
+    it('should return all courses for a user', async () => {
+      const user = buildStudentMock();
+      const mockCourses = [buildCourseMock(), buildCourseMock()];
+      jest.spyOn(coursesService, 'findAll').mockResolvedValueOnce(mockCourses);
 
-       const result = await controller.findAll({ user });
+      const result = await controller.findAll({ user });
 
-       expect(result).toBe(mockCourses);
-       expect(coursesService.findAll).toHaveBeenCalledWith(user);
-     });
-   });
+      expect(result).toBe(mockCourses);
+      expect(coursesService.findAll).toHaveBeenCalledWith(user);
+    });
+  });
 
-   describe('findOneById', () => {
-     it('should return a course by id', async () => {
-       const courseId = 'course-id';
-       const mockCourse = buildCourseMock({id: courseId});
+  describe('findOneById', () => {
+    it('should return a course by id', async () => {
+      const courseId = 'course-id';
+      const mockCourse = buildCourseMock({ id: courseId });
 
-       jest
-         .spyOn(coursesService, 'findOneById')
-         .mockResolvedValueOnce(mockCourse);
+      jest
+        .spyOn(coursesService, 'findOneById')
+        .mockResolvedValueOnce(mockCourse);
 
-       const result = await controller.findOneById(courseId);
+      const result = await controller.findOneById(courseId);
 
-       expect(result).toBe(mockCourse);
-       expect(coursesService.findOneById).toHaveBeenCalledWith(courseId);
-     });
-   });
+      expect(result).toBe(mockCourse);
+      expect(coursesService.findOneById).toHaveBeenCalledWith(courseId);
+    });
+  });
 
-   describe('search', () => {
-     it('should search for courses', async () => {
-       const searchText = 'search-text';
-       const user = buildStudentMock();
-       const mockCourses = [buildCourseMock(), buildCourseMock()];
-       jest.spyOn(coursesService, 'search').mockResolvedValueOnce(mockCourses);
+  describe('search', () => {
+    it('should search for courses', async () => {
+      const searchText = 'search-text';
+      const user = buildStudentMock();
+      const mockCourses = [buildCourseMock(), buildCourseMock()];
+      jest.spyOn(coursesService, 'search').mockResolvedValueOnce(mockCourses);
 
-       const result = await controller.search(searchText, { user });
+      const result = await controller.search(searchText, { user });
 
-       expect(result).toBe(mockCourses);
-       expect(coursesService.search).toHaveBeenCalledWith(searchText, user);
-     });
-   });
+      expect(result).toBe(mockCourses);
+      expect(coursesService.search).toHaveBeenCalledWith(searchText, user);
+    });
+  });
 
-   describe('update', () => {
-     it('should update a course', async () => {
-       const courseId = 'course-id';
-       const updateCourseDto = buildUpdateCourseDtoMock({unit: 9})
-       const mockCourse = buildCourseMock();
-       const updatedCourse = buildCourseMock({...mockCourse, ...updateCourseDto});
-       jest.spyOn(coursesService, 'update').mockResolvedValueOnce(updatedCourse);
+  describe('update', () => {
+    it('should update a course', async () => {
+      const courseId = 'course-id';
+      const updateCourseDto = buildUpdateCourseDtoMock({ unit: 9 });
+      const mockCourse = buildCourseMock();
+      const updatedCourse = buildCourseMock({
+        ...mockCourse,
+        ...updateCourseDto,
+      });
+      jest.spyOn(coursesService, 'update').mockResolvedValueOnce(updatedCourse);
 
-       const result = await controller.update(courseId, updateCourseDto);
+      const result = await controller.update(courseId, updateCourseDto);
 
-       expect(result).toBe(updatedCourse);
-       expect(coursesService.update).toHaveBeenCalledWith(courseId, updateCourseDto);
-     });
-   });
+      expect(result).toBe(updatedCourse);
+      expect(coursesService.update).toHaveBeenCalledWith(
+        courseId,
+        updateCourseDto,
+      );
+    });
+  });
 
-   describe('remove', () => {
-     it('should remove a course', async () => {
-       const courseId = 'course-id';
-       jest.spyOn(coursesService, 'remove').mockResolvedValueOnce(undefined);
+  describe('remove', () => {
+    it('should remove a course', async () => {
+      const courseId = 'course-id';
+      jest.spyOn(coursesService, 'remove').mockResolvedValueOnce(undefined);
 
-       const result = await controller.remove(courseId);
+      const result = await controller.remove(courseId);
 
-       expect(result).toEqual({ message: 'Successful' });
-       expect(coursesService.remove).toHaveBeenCalledWith(courseId);
-     });
-   });
+      expect(result).toEqual({ message: 'Successful' });
+      expect(coursesService.remove).toHaveBeenCalledWith(courseId);
+    });
+  });
+
+  describe('enrollStudent', () => {
+    it('should enroll a student for a course', async () => {
+      const courseId = 'course-id';
+      const student = buildStudentMock();
+      const req = {
+        user: student,
+      } as any;
+      jest
+        .spyOn(coursesService, 'enrollStudent')
+        .mockResolvedValueOnce(undefined);
+
+      const result = await controller.enrollStudent(courseId, req);
+
+      expect(result).toEqual({ message: 'Successful' });
+      expect(coursesService.enrollStudent).toHaveBeenCalledWith(
+        courseId,
+        student,
+      );
+    });
+
+    it('should throw BadRequestException if enrollment fails', async () => {
+      const courseId = 'course-id';
+      const student = buildStudentMock();
+      const req = {
+        user: student,
+      } as any;
+
+      jest
+        .spyOn(coursesService, 'enrollStudent')
+        .mockRejectedValueOnce(new BadRequestException());
+
+      await expect(controller.enrollStudent(courseId, req)).rejects.toThrow(
+        BadRequestException
+      );
+    });
+  });
+
+  describe('fetchEnrolledStudents', () => {
+    it('should fetch enrolled students for a course', async () => {
+      const courseId = 'course-id';
+      const lecturer = buildLecturerMock();
+      const enrolledStudents = [buildStudentMock(), buildStudentMock()];
+
+      jest
+        .spyOn(coursesService, 'fetchEnrolledStudents')
+        .mockResolvedValueOnce(enrolledStudents);
+
+      const result = await controller.fetchEnrolledStudents(courseId);
+
+      expect(result).toEqual(enrolledStudents);
+      expect(coursesService.fetchEnrolledStudents).toHaveBeenCalledWith(
+        courseId,
+      );
+    });
+
+    it('should throw NotFoundException if course not found', async () => {
+      const courseId = 'course-id';
+
+      jest
+        .spyOn(coursesService, 'fetchEnrolledStudents')
+        .mockRejectedValueOnce(new NotFoundException());
+
+      await expect(controller.fetchEnrolledStudents(courseId)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
 });

@@ -144,7 +144,7 @@ export class CoursesService {
     }
   }
 
-  async fetchEnrolledStudents(courseId) {
+  async fetchEnrolledStudents(courseId: string) {
     const course = await this.findOneById(courseId);
     return await this.studentService.findAll({
       coursesEnrollments: { courseId: course.id },

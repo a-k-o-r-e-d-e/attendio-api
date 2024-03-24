@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { StudentsService } from './students.service';
 import { Student } from './entities/student.entity';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindOptionsWhere, Repository } from 'typeorm';
 import { InstitutionsService } from '../institutions/institutions.service';
 import { buildInstitutionMock } from '../test/institution.factory';
 import {
@@ -64,7 +64,9 @@ describe('StudentsService', () => {
           id: createStudentDto.institution,
         }),
       });
-      jest.spyOn(studentRepository, 'create').mockReturnValueOnce(expectedStudent);
+      jest
+        .spyOn(studentRepository, 'create')
+        .mockReturnValueOnce(expectedStudent);
       const saveSpy = jest
         .spyOn(studentRepository, 'save')
         .mockResolvedValueOnce(expectedStudent);
@@ -79,12 +81,36 @@ describe('StudentsService', () => {
   describe('findAll', () => {
     it('should return all students', async () => {
       const mockStudents = [buildStudentMock(), buildStudentMock()];
-      jest.spyOn(studentRepository, 'findBy').mockResolvedValueOnce(mockStudents);
+      jest
+        .spyOn(studentRepository, 'findBy')
+        .mockResolvedValueOnce(mockStudents);
 
       const result = await service.findAll();
 
       expect(result).toBe(mockStudents);
       expect(studentRepository.findBy).toHaveBeenCalled();
+    });
+
+    it('should return all courses with custom whereClause for a user', async () => {
+      const user = buildStudentMock({ institution: { id: 'institution-id' } });
+
+      const whereClause: FindOptionsWhere<Student> = {
+        gender: 'male',
+      };
+      const mockStudents = [
+        buildStudentMock({ gender: 'male' }),
+        buildStudentMock({ gender: 'male' }),
+      ];
+      jest
+        .spyOn(studentRepository, 'findBy')
+        .mockResolvedValueOnce(mockStudents);
+
+      const result = await service.findAll(whereClause);
+
+      expect(result).toBe(mockStudents);
+      expect(studentRepository.findBy).toHaveBeenCalledWith({
+        ...whereClause,
+      });
     });
   });
 
@@ -102,5 +128,4 @@ describe('StudentsService', () => {
       });
     });
   });
-
 });

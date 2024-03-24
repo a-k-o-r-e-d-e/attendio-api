@@ -87,7 +87,6 @@ export class CoursesController {
   @Get(':id/students')
   async fetchEnrolledStudents(
     @Param('id', new ParseUUIDPipe()) courseId: string,
-    @Req() req: RequestWithProfile,
   ) {
     return await this.coursesService.fetchEnrolledStudents(courseId);
   }
