@@ -1,8 +1,25 @@
-import { IsDate, IsEnum, IsInt, IsNotEmpty, IsNumber, Max, Min } from 'class-validator';
+import {
+  IsDate,
+  IsEnum,
+  IsInt,
+  IsNotEmpty,
+  IsNumber,
+  Max,
+  Min,
+} from 'class-validator';
 import { CourseCategory } from '../../constants/enums';
 import { Institution } from '../../institutions/insititution.entity';
 import { Lecturer } from '../../lecturers/lecturer.entity';
-import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import { StudentCourseEnrollment } from './student-course-enrollment.entity';
 
 @Entity()
 export class Course {
@@ -55,6 +72,12 @@ export class Course {
   @Column()
   @IsNotEmpty()
   description: string;
+
+  @OneToMany(
+    () => StudentCourseEnrollment,
+    (studentsEnrollment) => studentsEnrollment.course,
+  )
+  public studentsEnrollments: StudentCourseEnrollment[];
 
   @CreateDateColumn({ select: false })
   @IsDate()

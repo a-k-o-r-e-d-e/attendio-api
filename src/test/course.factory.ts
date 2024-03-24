@@ -4,6 +4,8 @@ import { buildLecturerMock } from './lecturer.factory';
 import { CourseCategory } from '../constants/enums';
 import { CreateCourseDto } from '../courses/dto/create-course.dto';
 import { UpdateCourseDto } from '../courses/dto/update-course.dto';
+import { StudentCourseEnrollment } from '../courses/entities/student-course-enrollment.entity';
+import { buildStudentMock } from './student.factory';
 
 export function buildCourseMock(partial?: Partial<Course>): Course {
   return {
@@ -17,6 +19,7 @@ export function buildCourseMock(partial?: Partial<Course>): Course {
     description: 'This is a mock course description.',
     created_at: new Date(),
     updated_at: new Date(),
+    studentsEnrollments: [],
     ...partial,
     lecturer: {
       ...buildLecturerMock(partial?.lecturer),
@@ -47,5 +50,24 @@ export function buildUpdateCourseDtoMock(
 ): UpdateCourseDto {
   return {
     ...partial,
+  };
+}
+
+export function buildStudentCourseEnrollmentMock(
+  partial?: Partial<StudentCourseEnrollment>,
+): StudentCourseEnrollment {
+  return {
+    id: 'enrollment-id',
+    courseId: 'course-id',
+    studentId: 'course-id',
+    created_at: new Date(),
+    updated_at: new Date(),
+    ...partial,
+    student: {
+      ...buildStudentMock(partial?.student),
+    },
+    course: {
+      ...buildCourseMock(partial?.course),
+    },
   };
 }

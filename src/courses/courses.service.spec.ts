@@ -1,21 +1,28 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CoursesService } from './courses.service';
 import { Course } from './entities/course.entity';
-import { ILike, Repository } from 'typeorm';
+import { FindOptionsWhere, ILike, Repository } from 'typeorm';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { LecturersService } from '../lecturers/lecturers.service';
 import {
   buildCourseMock,
   buildCreateCourseDtoMock,
+  buildStudentCourseEnrollmentMock,
   buildUpdateCourseDtoMock,
 } from '../test/course.factory';
 import { buildLecturerMock } from '../test/lecturer.factory';
-import { NotFoundException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { buildStudentMock } from '../test/student.factory';
+import { StudentCourseEnrollment } from './entities/student-course-enrollment.entity';
+import { StudentsService } from '../students/students.service';
+import { PostgresErrorCode } from '../database/postgres-errorcodes.enum';
 
 describe('CoursesService', () => {
   let service: CoursesService;
   let courseRepository: Repository<Course>;
   let lecturerService: LecturersService;
+  let studentEnrollmentRepo: Repository<StudentCourseEnrollment>;
+  let studentService: StudentsService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -26,19 +33,33 @@ describe('CoursesService', () => {
           useClass: Repository,
         },
         {
+          provide: getRepositoryToken(StudentCourseEnrollment),
+          useClass: Repository,
+        },
+        {
           provide: LecturersService,
           useValue: {
             findOneById: jest.fn(),
+          },
+        },
+        {
+          provide: StudentsService,
+          useValue: {
+            findAll: jest.fn(),
           },
         },
       ],
     }).compile();
 
     service = module.get<CoursesService>(CoursesService);
+    lecturerService = module.get<LecturersService>(LecturersService);
+    studentService = module.get<StudentsService>(StudentsService);
     courseRepository = module.get<Repository<Course>>(
       getRepositoryToken(Course),
     );
-    lecturerService = module.get<LecturersService>(LecturersService);
+    studentEnrollmentRepo = module.get<Repository<StudentCourseEnrollment>>(
+      getRepositoryToken(StudentCourseEnrollment),
+    );
   });
 
   afterEach(() => {
@@ -83,6 +104,27 @@ describe('CoursesService', () => {
 
       expect(result).toBe(mockCourses);
       expect(courseRepository.findBy).toHaveBeenCalledWith({
+        institution: { id: user.institution.id },
+      });
+    });
+
+    it('should return all courses with custom whereClause for a user', async () => {
+      const user = buildStudentMock({ institution: { id: 'institution-id' } });
+
+      const whereClause: FindOptionsWhere<Course> = {
+        unit: 6,
+      };
+      const mockCourses = [
+        buildCourseMock({ unit: 6 }),
+        buildCourseMock({ unit: 6 }),
+      ];
+      jest.spyOn(courseRepository, 'findBy').mockResolvedValueOnce(mockCourses);
+
+      const result = await service.findAll(user, whereClause);
+
+      expect(result).toBe(mockCourses);
+      expect(courseRepository.findBy).toHaveBeenCalledWith({
+        ...whereClause,
         institution: { id: user.institution.id },
       });
     });
@@ -215,6 +257,121 @@ describe('CoursesService', () => {
       jest.spyOn(service, 'findOneById').mockResolvedValueOnce(undefined);
 
       await expect(service.remove(courseId)).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('enrollStudent', () => {
+    it('should enroll a student for a course', async () => {
+      const courseId = 'course-id';
+      const studentId = 'student-id';
+      const course = buildCourseMock({ id: courseId });
+      const student = buildStudentMock({ id: studentId });
+
+      jest.spyOn(service, 'findOneById').mockResolvedValueOnce(course);
+      jest
+        .spyOn(studentEnrollmentRepo, 'save')
+        .mockResolvedValueOnce(undefined);
+
+      await service.enrollStudent(courseId, student);
+
+      expect(service.findOneById).toHaveBeenCalledWith(courseId);
+      expect(studentEnrollmentRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          course_id: courseId,
+          student_id: studentId,
+          student,
+          course,
+        }),
+      );
+    });
+
+    it('should throw BadRequestException if student is already enrolled', async () => {
+      const courseId = 'course-id';
+      const studentId = 'student-id';
+      const course = buildCourseMock({ id: courseId });
+      const student = buildStudentMock({ id: studentId });
+
+      jest.spyOn(service, 'findOneById').mockResolvedValueOnce(course);
+      jest.spyOn(studentEnrollmentRepo, 'save').mockRejectedValueOnce({
+        code: PostgresErrorCode.UniqueViolation,
+      });
+
+      await expect(service.enrollStudent(courseId, student)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+  });
+
+  describe('fetchEnrolledStudents', () => {
+    it('should fetch enrolled students for a course', async () => {
+      const courseId = 'course-id';
+      const course = buildCourseMock({ id: courseId });
+      const enrolledStudents = [buildStudentMock(), buildStudentMock()];
+
+      jest.spyOn(service, 'findOneById').mockResolvedValueOnce(course);
+      jest
+        .spyOn(studentService, 'findAll')
+        .mockResolvedValueOnce(enrolledStudents);
+
+      const result = await service.fetchEnrolledStudents(courseId);
+
+      expect(service.findOneById).toHaveBeenCalledWith(courseId);
+      expect(studentService.findAll).toHaveBeenCalledWith({
+        coursesEnrollments: { courseId: course.id },
+      });
+      expect(result).toBe(enrolledStudents);
+    });
+  });
+
+  describe('unenrollStudent', () => {
+    it('should unenroll a student from a course', async () => {
+      const courseId = 'course-id';
+      const studentId = 'student-id';
+      const course = buildCourseMock({ id: courseId });
+      const student = buildStudentMock({ id: studentId });
+      const studentEnrollment = buildStudentCourseEnrollmentMock({
+        id: 'enrollment-id',
+        courseId,
+        studentId,
+        course,
+        student,
+      });
+
+      jest.spyOn(service, 'findOneById').mockResolvedValueOnce(course);
+      jest
+        .spyOn(studentEnrollmentRepo, 'findOneBy')
+        .mockResolvedValueOnce(studentEnrollment);
+      jest
+        .spyOn(studentEnrollmentRepo, 'delete')
+        .mockResolvedValueOnce(undefined);
+
+      await expect(
+        service.unenrollStudent(courseId, student),
+      ).resolves.not.toThrow();
+      expect(service.findOneById).toHaveBeenCalledWith(courseId);
+      expect(studentEnrollmentRepo.findOneBy).toHaveBeenCalledWith({
+        courseId,
+        studentId,
+      });
+      expect(studentEnrollmentRepo.delete).toHaveBeenCalledWith(
+        'enrollment-id',
+      );
+    });
+
+    it('should throw NotFoundException if student is not enrolled in the course', async () => {
+      const courseId = 'course-id';
+      const studentId = 'student-id';
+      const course = buildCourseMock({ id: courseId });
+      const student = buildStudentMock({ id: studentId });
+
+      jest.spyOn(service, 'findOneById').mockResolvedValueOnce(course);
+      jest
+        .spyOn(studentEnrollmentRepo, 'findOneBy')
+        .mockResolvedValueOnce(undefined);
+
+      await expect(service.unenrollStudent(courseId, student)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 });

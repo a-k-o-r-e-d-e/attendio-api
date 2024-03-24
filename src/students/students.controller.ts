@@ -1,4 +1,13 @@
-import { Controller, Get, Body, Req, UseGuards, Put, ParseUUIDPipe, Param } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Body,
+  Req,
+  UseGuards,
+  Put,
+  ParseUUIDPipe,
+  Param,
+} from '@nestjs/common';
 import { StudentsService } from './students.service';
 import { UpdateStudentDto } from './dto/update-student.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -6,6 +15,8 @@ import { Student } from './entities/student.entity';
 import RolesGuard from '../auth/guards/role.guard';
 import { Roles } from '../auth/role.decorator';
 import { Role } from '../constants/enums';
+import { RequestWithProfile } from '../auth/interfaces/request-with-user.interface';
+import { Course } from '../courses/entities/course.entity';
 
 @Controller('students')
 export class StudentsController {
@@ -34,5 +45,12 @@ export class StudentsController {
     @Param('id', new ParseUUIDPipe()) id: string,
   ): Promise<Student> {
     return this.studentsService.findOneById(id);
+  }
+
+  @Roles(Role.Student)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Get('me/courses')
+  async fetchMyCourses(@Req() req: RequestWithProfile): Promise<Course[]> {
+    return this.studentsService.fetchMyCourses(req.user as Student);
   }
 }
