@@ -1,4 +1,10 @@
-import { BadRequestException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  forwardRef,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -44,8 +50,12 @@ export class CoursesService {
   }
 
   // User is used to restrict the returned courses to user's insitution
-  async findAll(user: Student | Lecturer): Promise<Course[]> {
+  async findAll(
+    user: Student | Lecturer,
+    whereClause?: FindOptionsWhere<Course>,
+  ): Promise<Course[]> {
     return await this.courseRepository.findBy({
+      ...whereClause,
       institution: {
         id: user.institution.id,
       },

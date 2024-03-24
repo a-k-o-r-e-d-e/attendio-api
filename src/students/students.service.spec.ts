@@ -9,10 +9,13 @@ import {
   buildCreateStudentDtoMock,
   buildStudentMock,
 } from '../test/student.factory';
+import { CoursesService } from '../courses/courses.service';
+import { buildCourseMock } from '../test/course.factory';
 
 describe('StudentsService', () => {
   let service: StudentsService;
   let studentRepository: Repository<Student>;
+  let coursesService: CoursesService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -28,10 +31,17 @@ describe('StudentsService', () => {
             findOneById: jest.fn(),
           },
         },
+        {
+          provide: CoursesService,
+          useValue: {
+            findAll: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
     service = module.get<StudentsService>(StudentsService);
+    coursesService = module.get<CoursesService>(CoursesService);
     studentRepository = module.get<Repository<Student>>(
       getRepositoryToken(Student),
     );
@@ -69,12 +79,28 @@ describe('StudentsService', () => {
   describe('findAll', () => {
     it('should return all students', async () => {
       const mockStudents = [buildStudentMock(), buildStudentMock()];
-      jest.spyOn(studentRepository, 'find').mockResolvedValueOnce(mockStudents);
+      jest.spyOn(studentRepository, 'findBy').mockResolvedValueOnce(mockStudents);
 
       const result = await service.findAll();
 
       expect(result).toBe(mockStudents);
-      expect(studentRepository.find).toHaveBeenCalled();
+      expect(studentRepository.findBy).toHaveBeenCalled();
     });
   });
+
+  describe('fetchMyCourses', () => {
+    it('should fetch courses for a student', async () => {
+      const student = { id: 'student-id' } as Student;
+      const mockCourses = [buildCourseMock(), buildCourseMock()];
+      jest.spyOn(coursesService, 'findAll').mockResolvedValueOnce(mockCourses);
+
+      const result = await service.fetchMyCourses(student);
+
+      expect(result).toBe(mockCourses);
+      expect(coursesService.findAll).toHaveBeenCalledWith(student, {
+        studentsEnrollments: { studentId: student.id },
+      });
+    });
+  });
+
 });

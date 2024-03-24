@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CoursesService } from './courses.service';
 import { Course } from './entities/course.entity';
-import { ILike, Repository } from 'typeorm';
+import { FindOptionsWhere, ILike, Repository } from 'typeorm';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { LecturersService } from '../lecturers/lecturers.service';
 import {
@@ -11,6 +11,9 @@ import {
 } from '../test/course.factory';
 import { buildLecturerMock } from '../test/lecturer.factory';
 import { NotFoundException } from '@nestjs/common';
+import { buildStudentMock } from '../test/student.factory';
+import { StudentCourseEnrollment } from './entities/student-course-enrollment.entity';
+import { StudentsService } from '../students/students.service';
 
 describe('CoursesService', () => {
   let service: CoursesService;
@@ -26,9 +29,19 @@ describe('CoursesService', () => {
           useClass: Repository,
         },
         {
+          provide: getRepositoryToken(StudentCourseEnrollment),
+          useClass: Repository,
+        },
+        {
           provide: LecturersService,
           useValue: {
             findOneById: jest.fn(),
+          },
+        },
+        {
+          provide: StudentsService,
+          useValue: {
+            findAll: jest.fn(),
           },
         },
       ],
@@ -86,6 +99,26 @@ describe('CoursesService', () => {
         institution: { id: user.institution.id },
       });
     });
+
+     it('should return all courses with custom whereClause for a user', async () => {
+       const user = buildStudentMock({institution: {id: 'institution-id' }});
+       
+       const whereClause: FindOptionsWhere<Course> = {
+         unit: 6,
+       };
+       const mockCourses = [buildCourseMock({unit: 6}), buildCourseMock({unit: 6})];
+       jest
+         .spyOn(courseRepository, 'findBy')
+         .mockResolvedValueOnce(mockCourses);
+
+       const result = await service.findAll(user, whereClause);
+
+       expect(result).toBe(mockCourses);
+       expect(courseRepository.findBy).toHaveBeenCalledWith({
+         ...whereClause,
+         institution: { id: user.institution.id },
+       });
+     });
   });
 
   describe('findOneById', () => {

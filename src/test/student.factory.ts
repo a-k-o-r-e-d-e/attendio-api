@@ -5,9 +5,11 @@ import { buildInstitutionMock } from './institution.factory';
 import { CreateStudentDto } from '../students/dto/create-student.dto';
 import { UpdateStudentDto } from '../students/dto/update-student.dto';
 import { Role } from '../constants/enums';
+import { Institution } from '../institutions/insititution.entity';
 
-interface StudentPartial extends Partial<Omit<Student, 'user'>> {
+interface StudentPartial extends Partial<Omit<Student, 'user'|'institution'>> {
   user?: Partial<User>;
+  institution?: Partial<Institution>
 }
 
 export function buildStudentMock(partial?: StudentPartial): Student {

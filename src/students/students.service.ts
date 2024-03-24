@@ -11,6 +11,7 @@ import { Student } from './entities/student.entity';
 import { FindOptionsWhere, Repository } from 'typeorm';
 import { InstitutionsService } from '../institutions/institutions.service';
 import { Role } from '../constants/enums';
+import { CoursesService } from '../courses/courses.service';
 
 @Injectable()
 export class StudentsService {
@@ -18,6 +19,8 @@ export class StudentsService {
     @InjectRepository(Student)
     private readonly studentRepository: Repository<Student>,
     private readonly institutionService: InstitutionsService,
+    @Inject(forwardRef(() => CoursesService))
+    private readonly coursesService: CoursesService,
   ) {}
 
   async create(createStudentDto: CreateStudentDto): Promise<Student> {
@@ -112,5 +115,14 @@ export class StudentsService {
       throw new NotFoundException('Student does not exist!');
     }
     await this.studentRepository.delete(id);
+  }
+
+  /// Fetch the courses logged in student has enrolled for.
+  async fetchMyCourses(student: Student) {
+    return await this.coursesService.findAll(student, {
+      studentsEnrollments: {
+        studentId: student.id
+      }
+    })
   }
 }
