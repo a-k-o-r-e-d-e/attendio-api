@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  forwardRef,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -37,8 +42,8 @@ export class StudentsService {
     return await this.studentRepository.save(newStudent);
   }
 
-  async findAll(): Promise<Student[]> {
-    return await this.studentRepository.find();
+  async findAll(whereClause?: FindOptionsWhere<Student>): Promise<Student[]> {
+    return await this.studentRepository.findBy(whereClause);
   }
 
   private async findOne(whereClause: FindOptionsWhere<Student>) {

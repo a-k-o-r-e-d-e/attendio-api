@@ -18,6 +18,8 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Roles } from '../auth/role.decorator';
 import { Role } from '../constants/enums';
 import RolesGuard from '../auth/guards/role.guard';
+import { RequestWithProfile } from '../auth/interfaces/request-with-user.interface';
+import { Student } from '../students/entities/student.entity';
 
 @Controller('courses')
 export class CoursesController {
@@ -66,5 +68,27 @@ export class CoursesController {
     return {
       message: 'Successful',
     };
+  }
+
+  @Roles(Role.Student)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Post(':id/enroll')
+  async enrollStudent(
+    @Param('id', new ParseUUIDPipe()) courseId: string,
+    @Req() req: RequestWithProfile,
+  ) {
+    await this.coursesService.enrollStudent(courseId, req.user as Student);
+
+    return { message: 'Successful' };
+  }
+
+  @Roles(Role.Lecturer)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Get(':id/students')
+  async fetchEnrolledStudents(
+    @Param('id', new ParseUUIDPipe()) courseId: string,
+    @Req() req: RequestWithProfile,
+  ) {
+    return await this.coursesService.fetchEnrolledStudents(courseId);
   }
 }

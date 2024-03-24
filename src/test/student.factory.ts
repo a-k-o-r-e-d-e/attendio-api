@@ -23,6 +23,7 @@ export function buildStudentMock(partial?: StudentPartial): Student {
     department: 'Computer Science',
     created_at: new Date(),
     updated_at: new Date(),
+    coursesEnrollments: [],
     ...partial,
     user: {
       ...buildUserMock(partial?.user),
@@ -33,7 +34,6 @@ export function buildStudentMock(partial?: StudentPartial): Student {
     },
   };
 }
-
 
 export function buildCreateStudentDtoMock(
   partial?: Partial<CreateStudentDto>,
@@ -68,4 +68,3 @@ export function buildUpdateStudentDtoMock(
     },
   };
 }
-
