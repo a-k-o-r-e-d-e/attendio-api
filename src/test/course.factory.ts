@@ -20,6 +20,7 @@ export function buildCourseMock(partial?: Partial<Course>): Course {
     created_at: new Date(),
     updated_at: new Date(),
     studentsEnrollments: [],
+    classes: [],
     ...partial,
     lecturer: {
       ...buildLecturerMock(partial?.lecturer),

@@ -19,7 +19,6 @@ import { CoursesService } from '../courses/courses.service';
 import { PostgresErrorCode } from '../database/postgres-errorcodes.enum';
 import { ClassFrequency } from '../constants/enums';
 import { endOfWeek, set } from 'date-fns';
-import { Student } from 'src/students/entities/student.entity';
 
 @Injectable()
 export class ClassesService {
@@ -69,6 +68,11 @@ export class ClassesService {
     }
   }
 
+  async findAllCourseClasses(
+    whereClause?: FindOptionsWhere<CourseClass>,
+  ): Promise<CourseClass[]> {
+    return await this.courseClassRepository.findBy(whereClause);
+  }
 
   findOne(id: number) {
     return `This action returns a #${id} class`;

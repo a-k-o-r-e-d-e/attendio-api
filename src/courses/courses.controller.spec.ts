@@ -30,6 +30,7 @@ describe('CoursesController', () => {
             enrollStudent: jest.fn(),
             fetchEnrolledStudents: jest.fn(),
             unenrollStudent: jest.fn(),
+            fetchCourseClasses: jest.fn(),
           },
         },
       ],
@@ -229,6 +230,22 @@ describe('CoursesController', () => {
         courseId,
         student,
       );
+    });
+  });
+
+  describe('fetchCourseClasses', () => {
+    it('should return course classes', async () => {
+      const courseId = '12345';
+      const expectedResponse = []; // Mocked array of course classes
+
+      jest
+        .spyOn(coursesService, 'fetchCourseClasses')
+        .mockResolvedValue(expectedResponse);
+
+      const result = await controller.fetchCourseClasses(courseId);
+
+      expect(result).toEqual(expectedResponse);
+      expect(coursesService.fetchCourseClasses).toHaveBeenCalledWith(courseId);
     });
   });
 });

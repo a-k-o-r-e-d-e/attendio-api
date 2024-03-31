@@ -103,4 +103,10 @@ export class CoursesController {
   ) {
     return await this.coursesService.fetchEnrolledStudents(courseId);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':id/classes')
+  async fetchCourseClasses(@Param('id', new ParseUUIDPipe()) courseId: string) {
+    return await this.coursesService.fetchCourseClasses(courseId);
+  }
 }

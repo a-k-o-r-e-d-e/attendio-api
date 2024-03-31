@@ -5,9 +5,12 @@ import { DataSource, EntityManager, Repository } from 'typeorm';
 import { CourseClass } from './entities/course-class.entity';
 import { ClassInstance } from './entities/class-instance.entity';
 import { CoursesService } from '../courses/courses.service';
+import { buildCourseClassMock } from '../test/course-class.factory';
 
 describe('ClassesService', () => {
   let service: ClassesService;
+  let courseClassRepo: Repository<CourseClass>;
+  let classInstanceRepo: Repository<ClassInstance>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -35,16 +38,63 @@ describe('ClassesService', () => {
         {
           provide: EntityManager,
           useValue: {
-            save: jest.fn()
+            save: jest.fn(),
           },
         },
       ],
     }).compile();
 
     service = module.get<ClassesService>(ClassesService);
+    courseClassRepo = module.get<Repository<CourseClass>>(
+      getRepositoryToken(CourseClass),
+    );
+    classInstanceRepo = module.get<Repository<ClassInstance>>(
+      getRepositoryToken(ClassInstance),
+    );
   });
 
   it('should be defined', () => {
     expect(service).toBeDefined();
+  });
+
+  describe('findAllCourseClasses', () => {
+    it('should find all course classes when no whereClause is provided', async () => {
+      // Arrange
+      const expectedCourseClasses: CourseClass[] = [
+        buildCourseClassMock(),
+        buildCourseClassMock(),
+      ];
+      jest.spyOn(courseClassRepo, 'findBy').mockResolvedValueOnce(expectedCourseClasses);
+
+      // Act
+      const result = await service.findAllCourseClasses();
+
+      // Assert
+      expect(result).toEqual(expectedCourseClasses);
+      expect(courseClassRepo.findBy).toHaveBeenCalledWith(undefined);
+    });
+
+    it('should find course classes with a provided whereClause', async () => {
+      // Arrange
+      const whereClause = {
+        /* Add your whereClause here */
+      };
+      const expectedCourseClasses: CourseClass[] = [
+        buildCourseClassMock(),
+        buildCourseClassMock(),
+      ];
+      jest
+        .spyOn(courseClassRepo, 'findBy')
+        .mockResolvedValueOnce(expectedCourseClasses);
+
+      // Act
+      const result = await service.findAllCourseClasses(whereClause);
+
+      // Assert
+      expect(result).toEqual(expectedCourseClasses);
+      expect(courseClassRepo.findBy).toHaveBeenCalledWith(
+        whereClause,
+      );
+    });
   });
 });

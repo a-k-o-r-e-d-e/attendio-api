@@ -16,6 +16,8 @@ import { buildStudentMock } from '../test/student.factory';
 import { StudentCourseEnrollment } from './entities/student-course-enrollment.entity';
 import { StudentsService } from '../students/students.service';
 import { PostgresErrorCode } from '../database/postgres-errorcodes.enum';
+import { ClassesService } from '../classes/classes.service';
+import { buildCourseClassMock } from '../test/course-class.factory';
 
 describe('CoursesService', () => {
   let service: CoursesService;
@@ -23,6 +25,7 @@ describe('CoursesService', () => {
   let lecturerService: LecturersService;
   let studentEnrollmentRepo: Repository<StudentCourseEnrollment>;
   let studentService: StudentsService;
+  let classesService: ClassesService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -48,6 +51,12 @@ describe('CoursesService', () => {
             findAll: jest.fn(),
           },
         },
+        {
+          provide: ClassesService,
+          useValue: {
+            findAllCourseClasses: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
@@ -60,6 +69,7 @@ describe('CoursesService', () => {
     studentEnrollmentRepo = module.get<Repository<StudentCourseEnrollment>>(
       getRepositoryToken(StudentCourseEnrollment),
     );
+    classesService = module.get<ClassesService>(ClassesService);
   });
 
   afterEach(() => {
@@ -372,6 +382,34 @@ describe('CoursesService', () => {
       await expect(service.unenrollStudent(courseId, student)).rejects.toThrow(
         NotFoundException,
       );
+    });
+  });
+
+  describe('fetchCourseClasses', () => {
+    it('should return course classes for a given course ID', async () => {
+      const courseId = '12345';
+      const course: Course = buildCourseMock({ id: courseId });
+      const expectedClasses = [
+        buildCourseClassMock({
+          course: course,
+        }),
+        buildCourseClassMock({
+          course: course,
+        }),
+      ]; // Mocked array of course classes
+
+      jest.spyOn(service, 'findOneById').mockResolvedValue(course);
+      jest
+        .spyOn(classesService, 'findAllCourseClasses')
+        .mockResolvedValue(expectedClasses);
+
+      const result = await service.fetchCourseClasses(courseId);
+
+      expect(result).toEqual(expectedClasses);
+      expect(service.findOneById).toHaveBeenCalledWith(courseId);
+      expect(classesService.findAllCourseClasses).toHaveBeenCalledWith({
+        course: { id: course.id },
+      });
     });
   });
 });

@@ -6,12 +6,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { LecturersModule } from '../lecturers/lecturers.module';
 import { StudentCourseEnrollment } from './entities/student-course-enrollment.entity';
 import { StudentsModule } from '../students/students.module';
+import { ClassesModule } from '../classes/classes.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([StudentCourseEnrollment, Course]),
     LecturersModule,
     forwardRef(() => StudentsModule),
+    forwardRef(() => ClassesModule)
   ],
   controllers: [CoursesController],
   providers: [CoursesService],

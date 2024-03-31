@@ -20,6 +20,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { StudentCourseEnrollment } from './student-course-enrollment.entity';
+import { CourseClass } from '../../classes/entities/course-class.entity';
 
 @Entity()
 export class Course {
@@ -78,6 +79,9 @@ export class Course {
     (studentsEnrollment) => studentsEnrollment.course,
   )
   public studentsEnrollments: StudentCourseEnrollment[];
+
+  @OneToMany(() => CourseClass, (courseClass) => courseClass.course)
+  classes : CourseClass[]
 
   @CreateDateColumn({ select: false })
   @IsDate()

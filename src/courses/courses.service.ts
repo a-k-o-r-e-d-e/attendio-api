@@ -17,6 +17,7 @@ import { LecturersService } from '../lecturers/lecturers.service';
 import { StudentCourseEnrollment } from './entities/student-course-enrollment.entity';
 import { StudentsService } from '../students/students.service';
 import { PostgresErrorCode } from '../database/postgres-errorcodes.enum';
+import { ClassesService } from '../classes/classes.service';
 
 @Injectable()
 export class CoursesService {
@@ -28,6 +29,8 @@ export class CoursesService {
     private readonly lecturerService: LecturersService,
     @Inject(forwardRef(() => StudentsService))
     private readonly studentService: StudentsService,
+    @Inject(forwardRef(() => ClassesService))
+    private readonly classesService: ClassesService,
   ) {}
 
   async create(createCourseDto: CreateCourseDto, lecturer: Lecturer) {
@@ -164,6 +167,13 @@ export class CoursesService {
     const course = await this.findOneById(courseId);
     return await this.studentService.findAll({
       coursesEnrollments: { courseId: course.id },
+    });
+  }
+
+  async fetchCourseClasses(courseId: string) {
+    const course = await this.findOneById(courseId);
+    return await this.classesService.findAllCourseClasses({
+      course: { id: course.id },
     });
   }
 }
