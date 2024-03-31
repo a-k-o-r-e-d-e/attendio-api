@@ -125,8 +125,8 @@ describe('StudentsService', () => {
   });
 
   describe('fetchMyCourses', () => {
-    it('should fetch courses for a student', async () => {
-      const student = { id: 'student-id' } as Student;
+    it('should fetch courses a student enrolled for', async () => {
+      const student = buildStudentMock({ id: 'student-id' });
       const mockCourses = [buildCourseMock(), buildCourseMock()];
       jest.spyOn(coursesService, 'findAll').mockResolvedValueOnce(mockCourses);
 

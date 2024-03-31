@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
 import { Lecturer } from './lecturer.entity';
@@ -6,6 +6,7 @@ import { CreateLecturerDto } from './dto/create-lecturer.dto';
 import { UpdateLecturerDto } from './dto/update-lecturer.dto';
 import { Role } from '../constants/enums';
 import { InstitutionsService } from '../institutions/institutions.service';
+import { CoursesService } from '../courses/courses.service';
 
 @Injectable()
 export class LecturersService {
@@ -13,6 +14,8 @@ export class LecturersService {
     @InjectRepository(Lecturer)
     private readonly lecturerRepository: Repository<Lecturer>,
     private readonly institutionService: InstitutionsService,
+    @Inject(forwardRef(() => CoursesService))
+    private readonly coursesService: CoursesService,
   ) {}
 
   async findAll(): Promise<Lecturer[]> {
@@ -110,5 +113,13 @@ export class LecturersService {
       throw new NotFoundException('Lecturer does not exist!');
     }
     await this.lecturerRepository.delete(id);
+  }
+
+  async fetchMyCourses(lecturer: Lecturer) {
+    return await this.coursesService.findAll(lecturer, {
+      lecturer: {
+        id: lecturer.id,
+      },
+    });
   }
 }

@@ -11,12 +11,12 @@ import { ClassesModule } from '../classes/classes.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([StudentCourseEnrollment, Course]),
-    LecturersModule,
+    forwardRef(() => LecturersModule),
     forwardRef(() => StudentsModule),
-    forwardRef(() => ClassesModule)
+    forwardRef(() => ClassesModule),
   ],
   controllers: [CoursesController],
   providers: [CoursesService],
-  exports: [CoursesService]
+  exports: [CoursesService],
 })
 export class CoursesModule {}

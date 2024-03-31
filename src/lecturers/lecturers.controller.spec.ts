@@ -5,6 +5,7 @@ import {
   buildLecturerMock,
   buildUpdateLecturerDtoMock,
 } from '../test/lecturer.factory';
+import { buildCourseMock } from '../test/course.factory';
 
 describe('LecturersController', () => {
   let controller: LecturersController;
@@ -19,6 +20,7 @@ describe('LecturersController', () => {
           useValue: {
             findOneById: jest.fn(),
             update: jest.fn(),
+            fetchMyCourses: jest.fn(),
           },
         },
       ],
@@ -72,6 +74,18 @@ describe('LecturersController', () => {
 
       expect(result).toEqual(mockUpdatedLecturer);
       expect(service.update).toHaveBeenCalledWith(mockLecturer, mockUpdateDto);
+    });
+  });
+
+  describe('fetchMyCourses', () => {
+    it('should fetch courses created by a lecturer', async () => {
+      const lecturer = buildLecturerMock();
+      const mockCourses = [buildCourseMock(), buildCourseMock()];
+      jest.spyOn(service, 'fetchMyCourses').mockResolvedValueOnce(mockCourses);
+
+      const result = await service.fetchMyCourses(lecturer);
+
+      expect(result).toBe(mockCourses);
     });
   });
 });

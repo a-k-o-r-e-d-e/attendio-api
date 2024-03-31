@@ -26,6 +26,7 @@ export class CoursesService {
     private readonly courseRepository: Repository<Course>,
     @InjectRepository(StudentCourseEnrollment)
     private readonly studentEnrollmentRepo: Repository<StudentCourseEnrollment>,
+    @Inject(forwardRef(() => LecturersService))
     private readonly lecturerService: LecturersService,
     @Inject(forwardRef(() => StudentsService))
     private readonly studentService: StudentsService,
@@ -54,7 +55,7 @@ export class CoursesService {
 
   // User is used to restrict the returned courses to user's insitution
   async findAll(
-    user: Student,
+    user: Student | Lecturer,
     whereClause?: FindOptionsWhere<Course>,
   ): Promise<Course[]> {
     return await this.courseRepository.findBy({
