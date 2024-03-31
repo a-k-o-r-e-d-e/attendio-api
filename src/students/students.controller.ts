@@ -17,6 +17,7 @@ import { Roles } from '../auth/role.decorator';
 import { Role } from '../constants/enums';
 import { RequestWithProfile } from '../auth/interfaces/request-with-user.interface';
 import { Course } from '../courses/entities/course.entity';
+import { ClassInstance } from '../classes/entities/class-instance.entity';
 
 @Controller('students')
 export class StudentsController {
@@ -52,5 +53,12 @@ export class StudentsController {
   @Get('me/courses')
   async fetchMyCourses(@Req() req: RequestWithProfile): Promise<Course[]> {
     return this.studentsService.fetchMyCourses(req.user as Student);
+  }
+
+  @Roles(Role.Student)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Get('me/classes')
+  async fetchMyClasses(@Req() req: RequestWithProfile): Promise<ClassInstance[]> {
+    return this.studentsService.fetchMyClasses(req.user as Student);
   }
 }

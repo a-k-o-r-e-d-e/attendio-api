@@ -74,6 +74,12 @@ export class ClassesService {
     return await this.courseClassRepository.findBy(whereClause);
   }
 
+  async findAllClassesInstances(
+    whereClause?: FindOptionsWhere<ClassInstance>,
+  ): Promise<ClassInstance[]> {
+    return await this.classInstanceRepository.findBy(whereClause);
+  }
+
   findOne(id: number) {
     return `This action returns a #${id} class`;
   }

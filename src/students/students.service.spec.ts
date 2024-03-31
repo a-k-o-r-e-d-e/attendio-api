@@ -11,11 +11,14 @@ import {
 } from '../test/student.factory';
 import { CoursesService } from '../courses/courses.service';
 import { buildCourseMock } from '../test/course.factory';
+import { ClassesService } from '../classes/classes.service';
+import { buildClassInstanceMock } from '../test/course-class.factory';
 
 describe('StudentsService', () => {
   let service: StudentsService;
   let studentRepository: Repository<Student>;
   let coursesService: CoursesService;
+  let classesService: ClassesService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -37,11 +40,18 @@ describe('StudentsService', () => {
             findAll: jest.fn(),
           },
         },
+        {
+          provide: ClassesService,
+          useValue: {
+            findAllClassesInstances: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
     service = module.get<StudentsService>(StudentsService);
     coursesService = module.get<CoursesService>(CoursesService);
+    classesService = module.get<ClassesService>(ClassesService);
     studentRepository = module.get<Repository<Student>>(
       getRepositoryToken(Student),
     );
@@ -125,6 +135,28 @@ describe('StudentsService', () => {
       expect(result).toBe(mockCourses);
       expect(coursesService.findAll).toHaveBeenCalledWith(student, {
         studentsEnrollments: { studentId: student.id },
+      });
+    });
+  });
+
+  describe('fetchMyClasses', () => {
+    it('should return class instances for a given student', async () => {
+      const studentId = '12345';
+      const student: Student = buildStudentMock({ id: studentId });
+      const expectedClassInstances = [
+        buildClassInstanceMock(),
+        buildClassInstanceMock(),
+      ];
+
+      jest
+        .spyOn(classesService, 'findAllClassesInstances')
+        .mockResolvedValue(expectedClassInstances);
+
+      const result = await service.fetchMyClasses(student);
+
+      expect(result).toEqual(expectedClassInstances);
+      expect(classesService.findAllClassesInstances).toHaveBeenCalledWith({
+        base: { course: { studentsEnrollments: { studentId: student.id } } },
       });
     });
   });

@@ -5,7 +5,7 @@ import { DataSource, EntityManager, Repository } from 'typeorm';
 import { CourseClass } from './entities/course-class.entity';
 import { ClassInstance } from './entities/class-instance.entity';
 import { CoursesService } from '../courses/courses.service';
-import { buildCourseClassMock } from '../test/course-class.factory';
+import { buildClassInstanceMock, buildCourseClassMock } from '../test/course-class.factory';
 
 describe('ClassesService', () => {
   let service: ClassesService;
@@ -64,7 +64,9 @@ describe('ClassesService', () => {
         buildCourseClassMock(),
         buildCourseClassMock(),
       ];
-      jest.spyOn(courseClassRepo, 'findBy').mockResolvedValueOnce(expectedCourseClasses);
+      jest
+        .spyOn(courseClassRepo, 'findBy')
+        .mockResolvedValueOnce(expectedCourseClasses);
 
       // Act
       const result = await service.findAllCourseClasses();
@@ -92,9 +94,48 @@ describe('ClassesService', () => {
 
       // Assert
       expect(result).toEqual(expectedCourseClasses);
-      expect(courseClassRepo.findBy).toHaveBeenCalledWith(
-        whereClause,
-      );
+      expect(courseClassRepo.findBy).toHaveBeenCalledWith(whereClause);
+    });
+  });
+
+  describe('findAllClassInstances', () => {
+    it('should find all class instances when no whereClause is provided', async () => {
+      // Arrange
+      const expectedClassInstances = [
+        buildClassInstanceMock(),
+        buildClassInstanceMock(),
+      ];
+      jest
+        .spyOn(classInstanceRepo, 'findBy')
+        .mockResolvedValueOnce(expectedClassInstances);
+
+      // Act
+      const result = await service.findAllClassesInstances();
+
+      // Assert
+      expect(result).toEqual(expectedClassInstances);
+      expect(classInstanceRepo.findBy).toHaveBeenCalledWith(undefined);
+    });
+
+    it('should find course classes with a provided whereClause', async () => {
+      // Arrange
+      const whereClause = {
+        
+      };
+      const expectedClassInstances = [
+        buildClassInstanceMock(),
+        buildClassInstanceMock(),
+      ];
+      jest
+        .spyOn(classInstanceRepo, 'findBy')
+        .mockResolvedValueOnce(expectedClassInstances);
+
+      // Act
+      const result = await service.findAllClassesInstances(whereClause);
+
+      // Assert
+      expect(result).toEqual(expectedClassInstances);
+      expect(classInstanceRepo.findBy).toHaveBeenCalledWith(whereClause);
     });
   });
 });

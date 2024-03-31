@@ -6,6 +6,7 @@ import {
   buildUpdateStudentDtoMock,
 } from '../test/student.factory';
 import { buildCourseMock } from '../test/course.factory';
+import { buildClassInstanceMock } from '../test/course-class.factory';
 
 describe('StudentsController', () => {
   let controller: StudentsController;
@@ -21,6 +22,7 @@ describe('StudentsController', () => {
             update: jest.fn(),
             findOneById: jest.fn(),
             fetchMyCourses: jest.fn(),
+            fetchMyClasses: jest.fn(),
           },
         },
       ],
@@ -88,6 +90,18 @@ describe('StudentsController', () => {
       const result = await service.fetchMyCourses(student);
 
       expect(result).toBe(mockCourses);
+    });
+  });
+
+  describe('fetchMyClasses', () => {
+    it('should fetch classes for a student', async () => {
+      const student = buildStudentMock();
+      const mockClassInstances = [buildClassInstanceMock(), buildClassInstanceMock()];
+      jest.spyOn(service, 'fetchMyClasses').mockResolvedValueOnce(mockClassInstances);
+
+      const result = await service.fetchMyClasses(student);
+
+      expect(result).toBe(mockClassInstances);
     });
   });
 });
