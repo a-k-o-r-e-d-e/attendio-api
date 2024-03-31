@@ -13,11 +13,14 @@ import { buildInstitutionMock } from '../test/institution.factory';
 import { InstitutionsService } from '../institutions/institutions.service';
 import { buildCourseMock } from '../test/course.factory';
 import { CoursesService } from '../courses/courses.service';
+import { ClassesService } from '../classes/classes.service';
+import { buildClassInstanceMock } from '../test/course-class.factory';
 
 describe('LecturersService', () => {
   let service: LecturersService;
   let repository: Repository<Lecturer>;
   let coursesService: CoursesService;
+  let classesService: ClassesService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -39,12 +42,19 @@ describe('LecturersService', () => {
             findAll: jest.fn(),
           },
         },
+        {
+          provide: ClassesService,
+          useValue: {
+            findAllClassesInstances: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
     service = module.get<LecturersService>(LecturersService);
     repository = module.get<Repository<Lecturer>>(getRepositoryToken(Lecturer));
     coursesService = module.get<CoursesService>(CoursesService);
+    classesService = module.get<ClassesService>(ClassesService);
   });
 
   afterEach(() => {
@@ -253,6 +263,34 @@ describe('LecturersService', () => {
       expect(coursesService.findAll).toHaveBeenCalledWith(lecturer, {
         lecturer: {
           id: lecturer.id,
+        },
+      });
+    });
+  });
+
+  describe('fetchMyClasses', () => {
+    it('should return class instances for a given lecturer', async () => {
+      const lecturerId = '12345';
+      const lecturer = buildLecturerMock({ id: lecturerId });
+      const expectedClassInstances = [
+        buildClassInstanceMock(),
+        buildClassInstanceMock(),
+      ];
+
+      jest
+        .spyOn(classesService, 'findAllClassesInstances')
+        .mockResolvedValue(expectedClassInstances);
+
+      const result = await service.fetchMyClasses(lecturer);
+
+      expect(result).toEqual(expectedClassInstances);
+      expect(classesService.findAllClassesInstances).toHaveBeenCalledWith({
+        base: {
+          course: {
+            lecturer: {
+              id: lecturer.id,
+            },
+          },
         },
       });
     });

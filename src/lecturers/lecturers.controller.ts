@@ -16,6 +16,8 @@ import RolesGuard from '../auth/guards/role.guard';
 import { Role } from '../constants/enums';
 import { Roles } from '../auth/role.decorator';
 import { Course } from '../courses/entities/course.entity';
+import { RequestWithProfile } from '../auth/interfaces/request-with-user.interface';
+import { ClassInstance } from '../classes/entities/class-instance.entity';
 
 @Controller('lecturers')
 export class LecturersController {
@@ -41,10 +43,17 @@ export class LecturersController {
   @Roles(Role.Lecturer)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Get('me/courses')
-  fetchMyCourses(
-    @Req() req,
-  ): Promise<Course[]> {
+  fetchMyCourses(@Req() req): Promise<Course[]> {
     return this.lecturerService.fetchMyCourses(req.user);
+  }
+
+  @Roles(Role.Lecturer)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Get('me/classes')
+  async fetchMyClasses(
+    @Req() req: RequestWithProfile,
+  ): Promise<ClassInstance[]> {
+    return this.lecturerService.fetchMyClasses(req.user as Lecturer);
   }
 
   @UseGuards(JwtAuthGuard)

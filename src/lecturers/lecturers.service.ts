@@ -7,6 +7,8 @@ import { UpdateLecturerDto } from './dto/update-lecturer.dto';
 import { Role } from '../constants/enums';
 import { InstitutionsService } from '../institutions/institutions.service';
 import { CoursesService } from '../courses/courses.service';
+import { ClassInstance } from '../classes/entities/class-instance.entity';
+import { ClassesService } from '../classes/classes.service';
 
 @Injectable()
 export class LecturersService {
@@ -16,6 +18,7 @@ export class LecturersService {
     private readonly institutionService: InstitutionsService,
     @Inject(forwardRef(() => CoursesService))
     private readonly coursesService: CoursesService,
+    private readonly classesService: ClassesService,
   ) {}
 
   async findAll(): Promise<Lecturer[]> {
@@ -119,6 +122,18 @@ export class LecturersService {
     return await this.coursesService.findAll(lecturer, {
       lecturer: {
         id: lecturer.id,
+      },
+    });
+  }
+
+  async fetchMyClasses(lecturer: Lecturer): Promise<ClassInstance[]> {
+    return await this.classesService.findAllClassesInstances({
+      base: {
+        course: {
+          lecturer: {
+            id: lecturer.id,
+          },
+        },
       },
     });
   }

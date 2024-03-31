@@ -6,6 +6,7 @@ import {
   buildUpdateLecturerDtoMock,
 } from '../test/lecturer.factory';
 import { buildCourseMock } from '../test/course.factory';
+import { buildClassInstanceMock } from '../test/course-class.factory';
 
 describe('LecturersController', () => {
   let controller: LecturersController;
@@ -21,6 +22,7 @@ describe('LecturersController', () => {
             findOneById: jest.fn(),
             update: jest.fn(),
             fetchMyCourses: jest.fn(),
+            fetchMyClasses: jest.fn()
           },
         },
       ],
@@ -86,6 +88,23 @@ describe('LecturersController', () => {
       const result = await service.fetchMyCourses(lecturer);
 
       expect(result).toBe(mockCourses);
+    });
+  });
+
+  describe('fetchMyClasses', () => {
+    it('should fetch classes for a lecturer', async () => {
+      const lecturer = buildLecturerMock();
+      const mockClassInstances = [
+        buildClassInstanceMock(),
+        buildClassInstanceMock(),
+      ];
+      jest
+        .spyOn(service, 'fetchMyClasses')
+        .mockResolvedValueOnce(mockClassInstances);
+
+      const result = await service.fetchMyClasses(lecturer);
+
+      expect(result).toBe(mockClassInstances);
     });
   });
 });
