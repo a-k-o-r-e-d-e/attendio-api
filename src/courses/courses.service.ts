@@ -51,7 +51,7 @@ export class CoursesService {
 
   // User is used to restrict the returned courses to user's insitution
   async findAll(
-    user: Student | Lecturer,
+    user: Student,
     whereClause?: FindOptionsWhere<Course>,
   ): Promise<Course[]> {
     return await this.courseRepository.findBy({

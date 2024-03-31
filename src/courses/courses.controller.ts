@@ -32,7 +32,8 @@ export class CoursesController {
     return this.coursesService.create(createCourseDto, req.user);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @Roles(Role.Student)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Get()
   async findAll(@Req() req) {
     return await this.coursesService.findAll(req.user);
