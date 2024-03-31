@@ -1,5 +1,5 @@
 import {
-  BadRequestException,
+  ConflictException,
   forwardRef,
   Inject,
   Injectable,
@@ -137,7 +137,7 @@ export class CoursesService {
       await this.studentEnrollmentRepo.save(studentEnrollment);
     } catch (error) {
       if (error?.code === PostgresErrorCode.UniqueViolation) {
-        throw new BadRequestException('Student already enrolled for course');
+        throw new ConflictException('Student already enrolled for course');
       }
 
       throw error;

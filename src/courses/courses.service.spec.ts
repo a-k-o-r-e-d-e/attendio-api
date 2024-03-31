@@ -11,7 +11,7 @@ import {
   buildUpdateCourseDtoMock,
 } from '../test/course.factory';
 import { buildLecturerMock } from '../test/lecturer.factory';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { ConflictException, NotFoundException } from '@nestjs/common';
 import { buildStudentMock } from '../test/student.factory';
 import { StudentCourseEnrollment } from './entities/student-course-enrollment.entity';
 import { StudentsService } from '../students/students.service';
@@ -297,7 +297,7 @@ describe('CoursesService', () => {
       });
 
       await expect(service.enrollStudent(courseId, student)).rejects.toThrow(
-        BadRequestException,
+        ConflictException,
       );
     });
   });
