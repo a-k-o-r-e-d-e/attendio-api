@@ -19,7 +19,7 @@ export class ClassInstance {
 
   @Column({ type: 'enum', enum: ClassStatus, default: ClassStatus.Pending })
   @IsEnum(ClassStatus)
-  frequency: ClassStatus;
+  status: ClassStatus;
 
   @Column({ type: 'date' })
   @IsDate()

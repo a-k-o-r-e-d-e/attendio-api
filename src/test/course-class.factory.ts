@@ -34,7 +34,7 @@ export function buildClassInstanceMock(
 ): ClassInstance {
   return {
     id: '123e4567-e89b-12d3-a456-426614174000', // Replace with valid UUID
-    frequency: ClassStatus.Pending,
+    status: ClassStatus.Pending,
     date: new Date(),
     baseId: '123e4567-e89b-12d3-a456-426614174001', // Replace with valid UUID
     start_time: new Date('2024-03-25T08:00:00Z'),
