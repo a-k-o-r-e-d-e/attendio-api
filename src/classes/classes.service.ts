@@ -8,12 +8,18 @@ import { CreateCourseClassDto } from './dto/create-class.dto';
 import { UpdateCourseClassDto } from './dto/update-class.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CourseClass } from './entities/course-class.entity';
-import { DataSource, EntityManager, Repository } from 'typeorm';
+import {
+  DataSource,
+  EntityManager,
+  FindOptionsWhere,
+  Repository,
+} from 'typeorm';
 import { ClassInstance } from './entities/class-instance.entity';
 import { CoursesService } from '../courses/courses.service';
 import { PostgresErrorCode } from '../database/postgres-errorcodes.enum';
 import { ClassFrequency } from '../constants/enums';
 import { endOfWeek, set } from 'date-fns';
+import { Student } from 'src/students/entities/student.entity';
 
 @Injectable()
 export class ClassesService {
@@ -63,9 +69,6 @@ export class ClassesService {
     }
   }
 
-  findAll() {
-    return `This action returns all classes`;
-  }
 
   findOne(id: number) {
     return `This action returns a #${id} class`;

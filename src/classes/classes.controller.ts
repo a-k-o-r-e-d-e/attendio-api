@@ -27,10 +27,6 @@ export class ClassesController {
     return this.classesService.create(createClassDto);
   }
 
-  @Get()
-  findAll() {
-    return this.classesService.findAll();
-  }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
