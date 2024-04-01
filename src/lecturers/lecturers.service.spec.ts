@@ -255,16 +255,21 @@ describe('LecturersService', () => {
     it('should fetch courses created by a lecturer', async () => {
       const lecturer = buildLecturerMock({ id: 'lecturer-id' });
       const mockCourses = [buildCourseMock(), buildCourseMock()];
-      jest.spyOn(coursesService, 'findAll').mockResolvedValueOnce(mockCourses);
+      jest
+        .spyOn(coursesService, 'findAll')
+        .mockResolvedValueOnce(mockCourses);
 
       const result = await service.fetchMyCourses(lecturer);
 
       expect(result).toBe(mockCourses);
-      expect(coursesService.findAll).toHaveBeenCalledWith(lecturer, {
-        lecturer: {
-          id: lecturer.id,
+      expect(coursesService.findAll).toHaveBeenCalledWith(
+        lecturer,
+        {
+          lecturer: {
+            id: lecturer.id,
+          },
         },
-      });
+      );
     });
   });
 

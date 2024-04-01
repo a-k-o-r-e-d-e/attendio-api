@@ -70,7 +70,9 @@ describe('CoursesController', () => {
     it('should return all courses for a user', async () => {
       const user = buildStudentMock();
       const mockCourses = [buildCourseMock(), buildCourseMock()];
-      jest.spyOn(coursesService, 'findAll').mockResolvedValueOnce(mockCourses);
+      jest
+        .spyOn(coursesService, 'findAll')
+        .mockResolvedValueOnce(mockCourses);
 
       const result = await controller.findAll({ user });
 

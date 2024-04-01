@@ -18,6 +18,7 @@ import { StudentsService } from '../students/students.service';
 import { PostgresErrorCode } from '../database/postgres-errorcodes.enum';
 import { ClassesService } from '../classes/classes.service';
 import { buildCourseClassMock } from '../test/course-class.factory';
+import { TypeOrmUtils } from '../database/typeorm-utils';
 
 describe('CoursesService', () => {
   let service: CoursesService;
@@ -26,6 +27,21 @@ describe('CoursesService', () => {
   let studentEnrollmentRepo: Repository<StudentCourseEnrollment>;
   let studentService: StudentsService;
   let classesService: ClassesService;
+
+  const mockCourses = [buildCourseMock({created_at: new Date('2025-11-03')}), buildCourseMock()];
+  const rawResults = [
+    { ...mockCourses[0], is_student_enrolled: true },
+    { ...mockCourses[1], is_student_enrolled: false },
+  ];
+  const queryBuilderMock = {
+    leftJoinAndSelect: jest.fn().mockReturnThis(),
+    setFindOptions: jest.fn().mockReturnThis(),
+    addSelect: jest.fn().mockReturnThis(),
+    setParameters: jest.fn().mockReturnThis(),
+    getRawAndEntities: jest
+      .fn()
+      .mockResolvedValue({ entities: mockCourses, raw: rawResults }),
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -106,15 +122,23 @@ describe('CoursesService', () => {
 
   describe('findAll', () => {
     it('should return all courses for a user', async () => {
-      const user = { institution: { id: 'institution-id' } } as any;
-      const mockCourses = [buildCourseMock(), buildCourseMock()];
-      jest.spyOn(courseRepository, 'findBy').mockResolvedValueOnce(mockCourses);
+      const user = buildStudentMock({ institution: { id: 'institution-id' } });
+      jest
+        .spyOn(courseRepository, 'createQueryBuilder')
+        .mockReturnValue(queryBuilderMock as any);
+      
+        jest.spyOn(TypeOrmUtils, 'attachVirtualColumns').mockReturnValue(rawResults);
 
       const result = await service.findAll(user);
 
-      expect(result).toBe(mockCourses);
-      expect(courseRepository.findBy).toHaveBeenCalledWith({
-        institution: { id: user.institution.id },
+      console.log("Results:: ", result);
+      console.log("Raw Results:: ", rawResults)
+
+      expect(result).toEqual(rawResults);
+      expect(queryBuilderMock.setFindOptions).toHaveBeenCalledWith({
+        where: {
+          institution: { id: user.institution.id },
+        }
       });
     });
 
@@ -124,18 +148,23 @@ describe('CoursesService', () => {
       const whereClause: FindOptionsWhere<Course> = {
         unit: 6,
       };
-      const mockCourses = [
-        buildCourseMock({ unit: 6 }),
-        buildCourseMock({ unit: 6 }),
-      ];
-      jest.spyOn(courseRepository, 'findBy').mockResolvedValueOnce(mockCourses);
+      const mockCourses = rawResults;
+      jest
+        .spyOn(courseRepository, 'createQueryBuilder')
+        .mockReturnValue(queryBuilderMock as any);
+
+      jest
+        .spyOn(TypeOrmUtils, 'attachVirtualColumns')
+        .mockReturnValue(rawResults);
 
       const result = await service.findAll(user, whereClause);
 
       expect(result).toBe(mockCourses);
-      expect(courseRepository.findBy).toHaveBeenCalledWith({
-        ...whereClause,
+      expect(queryBuilderMock.setFindOptions).toHaveBeenCalledWith({
+        where:{
+          ...whereClause,
         institution: { id: user.institution.id },
+        }
       });
     });
   });
@@ -202,25 +231,33 @@ describe('CoursesService', () => {
     it('should return courses matching search text for a user', async () => {
       const searchText = 'search-Text';
       const user = { institution: { id: 'institution-id' } } as any;
-      const mockCourses = [new Course(), new Course()];
-      jest.spyOn(courseRepository, 'findBy').mockResolvedValueOnce(mockCourses);
+      jest
+        .spyOn(courseRepository, 'createQueryBuilder')
+        .mockReturnValue(queryBuilderMock as any);
+
+      jest
+        .spyOn(TypeOrmUtils, 'attachVirtualColumns')
+        .mockReturnValue(rawResults);
 
       const result = await service.search(searchText, user);
 
       const searchTextLower = searchText.toLowerCase();
 
-      expect(result).toBe(mockCourses);
+
+      expect(result).toEqual(rawResults);
       // Validating it was called with ILike helps validate that the function is case-insensitive
-      expect(courseRepository.findBy).toHaveBeenCalledWith([
-        {
-          course_code: ILike(`%${searchTextLower}%`),
-          institution: { id: user.institution.id },
-        },
-        {
-          title: ILike(`%${searchTextLower}%`),
-          institution: { id: user.institution.id },
-        },
-      ]);
+      expect(queryBuilderMock.setFindOptions).toHaveBeenCalledWith({
+        where: [
+          {
+            course_code: ILike(`%${searchTextLower}%`),
+            institution: { id: user.institution.id },
+          },
+          {
+            title: ILike(`%${searchTextLower}%`),
+            institution: { id: user.institution.id },
+          },
+        ],
+      });
     });
   });
 
