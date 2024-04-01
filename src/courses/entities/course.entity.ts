@@ -20,6 +20,8 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { StudentCourseEnrollment } from './student-course-enrollment.entity';
+import { CourseClass } from '../../classes/entities/course-class.entity';
+import { VirtualColumn } from '../../database/custom-decorators';
 
 @Entity()
 export class Course {
@@ -63,7 +65,7 @@ export class Course {
   })
   lecturer: Lecturer;
 
-  @Column()
+  @Column({ default: 70.0 })
   @IsNumber({ allowInfinity: false, allowNaN: false, maxDecimalPlaces: 2 })
   @Max(100)
   @Min(0)
@@ -79,6 +81,12 @@ export class Course {
   )
   public studentsEnrollments: StudentCourseEnrollment[];
 
+  @OneToMany(() => CourseClass, (courseClass) => courseClass.course)
+  classes: CourseClass[];
+
+  @VirtualColumn()
+  is_student_enrolled?: boolean;
+  
   @CreateDateColumn({ select: false })
   @IsDate()
   created_at: Date;

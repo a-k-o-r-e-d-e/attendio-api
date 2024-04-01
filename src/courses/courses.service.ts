@@ -1,5 +1,5 @@
 import {
-  BadRequestException,
+  ConflictException,
   forwardRef,
   Inject,
   Injectable,
@@ -17,6 +17,8 @@ import { LecturersService } from '../lecturers/lecturers.service';
 import { StudentCourseEnrollment } from './entities/student-course-enrollment.entity';
 import { StudentsService } from '../students/students.service';
 import { PostgresErrorCode } from '../database/postgres-errorcodes.enum';
+import { ClassesService } from '../classes/classes.service';
+import { TypeOrmUtils } from '../database/typeorm-utils';
 
 @Injectable()
 export class CoursesService {
@@ -25,9 +27,12 @@ export class CoursesService {
     private readonly courseRepository: Repository<Course>,
     @InjectRepository(StudentCourseEnrollment)
     private readonly studentEnrollmentRepo: Repository<StudentCourseEnrollment>,
+    @Inject(forwardRef(() => LecturersService))
     private readonly lecturerService: LecturersService,
     @Inject(forwardRef(() => StudentsService))
     private readonly studentService: StudentsService,
+    @Inject(forwardRef(() => ClassesService))
+    private readonly classesService: ClassesService,
   ) {}
 
   async create(createCourseDto: CreateCourseDto, lecturer: Lecturer) {
@@ -49,17 +54,37 @@ export class CoursesService {
     return await this.courseRepository.save(newCourse);
   }
 
-  // User is used to restrict the returned courses to user's insitution
   async findAll(
     user: Student | Lecturer,
-    whereClause?: FindOptionsWhere<Course>,
+    whereClause?: FindOptionsWhere<Course> | FindOptionsWhere<Course>[],
   ): Promise<Course[]> {
-    return await this.courseRepository.findBy({
+    whereClause = {
       ...whereClause,
-      institution: {
-        id: user.institution.id,
-      },
-    });
+      institution: { id: user.institution.id },
+    };
+    return this.findMany(user, whereClause);
+  }
+
+  private async findMany(
+    user: Student | Lecturer,
+    whereClause?: FindOptionsWhere<Course> | FindOptionsWhere<Course>[],
+  ): Promise<Course[]> {
+    const queryBuilder = this.courseRepository
+      .createQueryBuilder('course')
+      .leftJoinAndSelect('course.studentsEnrollments', 'studentsEnrollments')
+      .setFindOptions({ where: whereClause });
+
+    if (user instanceof Student) {
+      queryBuilder
+        .addSelect(
+          'studentsEnrollments.studentId = :student_id',
+          'is_student_enrolled',
+        )
+        .setParameters({ student_id: user.id });
+    }
+    const results = await queryBuilder.getRawAndEntities();
+
+    return TypeOrmUtils.attachVirtualColumns<Course>(results);
   }
 
   private async findOne(
@@ -91,7 +116,7 @@ export class CoursesService {
         id: user.institution.id,
       },
     };
-    return await this.courseRepository.findBy([
+    return await this.findMany(user, [
       {
         course_code: ILike(`%${searchTextLower}%`),
         ...institutionClause,
@@ -137,7 +162,7 @@ export class CoursesService {
       await this.studentEnrollmentRepo.save(studentEnrollment);
     } catch (error) {
       if (error?.code === PostgresErrorCode.UniqueViolation) {
-        throw new BadRequestException('Student already enrolled for course');
+        throw new ConflictException('Student already enrolled for course');
       }
 
       throw error;
@@ -164,6 +189,13 @@ export class CoursesService {
     const course = await this.findOneById(courseId);
     return await this.studentService.findAll({
       coursesEnrollments: { courseId: course.id },
+    });
+  }
+
+  async fetchCourseClasses(courseId: string) {
+    const course = await this.findOneById(courseId);
+    return await this.classesService.findAllCourseClasses({
+      course: { id: course.id },
     });
   }
 }

@@ -11,10 +11,16 @@ import {
 import { NotFoundException } from '@nestjs/common';
 import { buildInstitutionMock } from '../test/institution.factory';
 import { InstitutionsService } from '../institutions/institutions.service';
+import { buildCourseMock } from '../test/course.factory';
+import { CoursesService } from '../courses/courses.service';
+import { ClassesService } from '../classes/classes.service';
+import { buildClassInstanceMock } from '../test/course-class.factory';
 
 describe('LecturersService', () => {
   let service: LecturersService;
   let repository: Repository<Lecturer>;
+  let coursesService: CoursesService;
+  let classesService: ClassesService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -30,11 +36,25 @@ describe('LecturersService', () => {
             findOneById: jest.fn(),
           },
         },
+        {
+          provide: CoursesService,
+          useValue: {
+            findAll: jest.fn(),
+          },
+        },
+        {
+          provide: ClassesService,
+          useValue: {
+            findAllClassInstances: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
     service = module.get<LecturersService>(LecturersService);
     repository = module.get<Repository<Lecturer>>(getRepositoryToken(Lecturer));
+    coursesService = module.get<CoursesService>(CoursesService);
+    classesService = module.get<ClassesService>(ClassesService);
   });
 
   afterEach(() => {
@@ -228,6 +248,56 @@ describe('LecturersService', () => {
       await expect(service.delete(lecturerId)).rejects.toThrow(
         NotFoundException,
       );
+    });
+  });
+
+  describe('fetchMyCourses', () => {
+    it('should fetch courses created by a lecturer', async () => {
+      const lecturer = buildLecturerMock({ id: 'lecturer-id' });
+      const mockCourses = [buildCourseMock(), buildCourseMock()];
+      jest
+        .spyOn(coursesService, 'findAll')
+        .mockResolvedValueOnce(mockCourses);
+
+      const result = await service.fetchMyCourses(lecturer);
+
+      expect(result).toBe(mockCourses);
+      expect(coursesService.findAll).toHaveBeenCalledWith(
+        lecturer,
+        {
+          lecturer: {
+            id: lecturer.id,
+          },
+        },
+      );
+    });
+  });
+
+  describe('fetchMyClassInstances', () => {
+    it('should return class instances for a given lecturer', async () => {
+      const lecturerId = '12345';
+      const lecturer = buildLecturerMock({ id: lecturerId });
+      const expectedClassInstances = [
+        buildClassInstanceMock(),
+        buildClassInstanceMock(),
+      ];
+
+      jest
+        .spyOn(classesService, 'findAllClassInstances')
+        .mockResolvedValue(expectedClassInstances);
+
+      const result = await service.fetchMyClassInstances(lecturer);
+
+      expect(result).toEqual(expectedClassInstances);
+      expect(classesService.findAllClassInstances).toHaveBeenCalledWith({
+        base: {
+          course: {
+            lecturer: {
+              id: lecturer.id,
+            },
+          },
+        },
+      });
     });
   });
 });

@@ -15,6 +15,9 @@ import { UpdateLecturerDto } from './dto/update-lecturer.dto';
 import RolesGuard from '../auth/guards/role.guard';
 import { Role } from '../constants/enums';
 import { Roles } from '../auth/role.decorator';
+import { Course } from '../courses/entities/course.entity';
+import { RequestWithProfile } from '../auth/interfaces/request-with-user.interface';
+import { ClassInstance } from '../classes/entities/class-instance.entity';
 
 @Controller('lecturers')
 export class LecturersController {
@@ -35,6 +38,22 @@ export class LecturersController {
     @Req() req,
   ): Promise<Lecturer> {
     return this.lecturerService.update(req.user, updateLecturerDto);
+  }
+
+  @Roles(Role.Lecturer)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Get('me/courses')
+  fetchMyCourses(@Req() req): Promise<Course[]> {
+    return this.lecturerService.fetchMyCourses(req.user);
+  }
+
+  @Roles(Role.Lecturer)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Get('me/classes/instances')
+  async fetchMyClassInstances(
+    @Req() req: RequestWithProfile,
+  ): Promise<ClassInstance[]> {
+    return this.lecturerService.fetchMyClassInstances(req.user as Lecturer);
   }
 
   @UseGuards(JwtAuthGuard)

@@ -12,6 +12,8 @@ import { FindOptionsWhere, Repository } from 'typeorm';
 import { InstitutionsService } from '../institutions/institutions.service';
 import { Role } from '../constants/enums';
 import { CoursesService } from '../courses/courses.service';
+import { ClassInstance } from '../classes/entities/class-instance.entity';
+import { ClassesService } from '../classes/classes.service';
 
 @Injectable()
 export class StudentsService {
@@ -21,6 +23,8 @@ export class StudentsService {
     private readonly institutionService: InstitutionsService,
     @Inject(forwardRef(() => CoursesService))
     private readonly coursesService: CoursesService,
+    @Inject(forwardRef(() => ClassesService))
+    private readonly classesService: ClassesService,
   ) {}
 
   async create(createStudentDto: CreateStudentDto): Promise<Student> {
@@ -121,8 +125,20 @@ export class StudentsService {
   async fetchMyCourses(student: Student) {
     return await this.coursesService.findAll(student, {
       studentsEnrollments: {
-        studentId: student.id
-      }
-    })
+        studentId: student.id,
+      },
+    });
+  }
+
+  async fetchMyClassInstances(student: Student): Promise<ClassInstance[]> {
+    return await this.classesService.findAllClassInstances({
+      base: {
+        course: {
+          studentsEnrollments: {
+            studentId: student.id,
+          },
+        },
+      },
+    });
   }
 }

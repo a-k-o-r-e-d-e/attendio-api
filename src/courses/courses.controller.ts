@@ -32,7 +32,8 @@ export class CoursesController {
     return this.coursesService.create(createCourseDto, req.user);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @Roles(Role.Student)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Get()
   async findAll(@Req() req) {
     return await this.coursesService.findAll(req.user);
@@ -101,5 +102,11 @@ export class CoursesController {
     @Param('id', new ParseUUIDPipe()) courseId: string,
   ) {
     return await this.coursesService.fetchEnrolledStudents(courseId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':id/classes')
+  async fetchCourseClasses(@Param('id', new ParseUUIDPipe()) courseId: string) {
+    return await this.coursesService.fetchCourseClasses(courseId);
   }
 }

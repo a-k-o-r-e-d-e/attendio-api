@@ -5,6 +5,8 @@ import {
   buildLecturerMock,
   buildUpdateLecturerDtoMock,
 } from '../test/lecturer.factory';
+import { buildCourseMock } from '../test/course.factory';
+import { buildClassInstanceMock } from '../test/course-class.factory';
 
 describe('LecturersController', () => {
   let controller: LecturersController;
@@ -19,6 +21,8 @@ describe('LecturersController', () => {
           useValue: {
             findOneById: jest.fn(),
             update: jest.fn(),
+            fetchMyCourses: jest.fn(),
+            fetchMyClassInstances: jest.fn(),
           },
         },
       ],
@@ -48,9 +52,7 @@ describe('LecturersController', () => {
       const lecturerId = 'lecturer-id';
       const mockLecturer = buildLecturerMock({ id: lecturerId });
 
-      jest
-        .spyOn(service, 'findOneById')
-        .mockResolvedValueOnce(mockLecturer);
+      jest.spyOn(service, 'findOneById').mockResolvedValueOnce(mockLecturer);
 
       const result = await controller.findOneById(lecturerId);
 
@@ -72,6 +74,35 @@ describe('LecturersController', () => {
 
       expect(result).toEqual(mockUpdatedLecturer);
       expect(service.update).toHaveBeenCalledWith(mockLecturer, mockUpdateDto);
+    });
+  });
+
+  describe('fetchMyCourses', () => {
+    it('should fetch courses created by a lecturer', async () => {
+      const lecturer = buildLecturerMock();
+      const mockCourses = [buildCourseMock(), buildCourseMock()];
+      jest.spyOn(service, 'fetchMyCourses').mockResolvedValueOnce(mockCourses);
+
+      const result = await service.fetchMyCourses(lecturer);
+
+      expect(result).toBe(mockCourses);
+    });
+  });
+
+  describe('fetchMyClassInstances', () => {
+    it('should fetch classes for a lecturer', async () => {
+      const lecturer = buildLecturerMock();
+      const mockClassInstances = [
+        buildClassInstanceMock(),
+        buildClassInstanceMock(),
+      ];
+      jest
+        .spyOn(service, 'fetchMyClassInstances')
+        .mockResolvedValueOnce(mockClassInstances);
+
+      const result = await service.fetchMyClassInstances(lecturer);
+
+      expect(result).toBe(mockClassInstances);
     });
   });
 });

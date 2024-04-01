@@ -15,3 +15,19 @@ export enum CourseCategory {
   Elective = 'elective',
   Compulsory = 'compulsory',
 }
+
+export enum ClassMode {
+  Physical = 'physical',
+  Online = 'online',
+}
+
+export enum ClassFrequency {
+  Weekly = 'weekly',
+  OneOff = 'one-off',
+}
+
+export enum ClassStatus {
+  Pending = 'pending',
+  Held = 'held',
+  Cancelled = 'cancelled',
+}
