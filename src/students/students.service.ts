@@ -130,8 +130,8 @@ export class StudentsService {
     });
   }
 
-  async fetchMyClasses(student: Student): Promise<ClassInstance[]> {
-    return await this.classesService.findAllClassesInstances({
+  async fetchMyClassInstances(student: Student): Promise<ClassInstance[]> {
+    return await this.classesService.findAllClassInstances({
       base: {
         course: {
           studentsEnrollments: {

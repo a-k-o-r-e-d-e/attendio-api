@@ -45,7 +45,7 @@ describe('LecturersService', () => {
         {
           provide: ClassesService,
           useValue: {
-            findAllClassesInstances: jest.fn(),
+            findAllClassInstances: jest.fn(),
           },
         },
       ],
@@ -268,7 +268,7 @@ describe('LecturersService', () => {
     });
   });
 
-  describe('fetchMyClasses', () => {
+  describe('fetchMyClassInstances', () => {
     it('should return class instances for a given lecturer', async () => {
       const lecturerId = '12345';
       const lecturer = buildLecturerMock({ id: lecturerId });
@@ -278,13 +278,13 @@ describe('LecturersService', () => {
       ];
 
       jest
-        .spyOn(classesService, 'findAllClassesInstances')
+        .spyOn(classesService, 'findAllClassInstances')
         .mockResolvedValue(expectedClassInstances);
 
-      const result = await service.fetchMyClasses(lecturer);
+      const result = await service.fetchMyClassInstances(lecturer);
 
       expect(result).toEqual(expectedClassInstances);
-      expect(classesService.findAllClassesInstances).toHaveBeenCalledWith({
+      expect(classesService.findAllClassInstances).toHaveBeenCalledWith({
         base: {
           course: {
             lecturer: {

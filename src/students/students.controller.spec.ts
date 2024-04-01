@@ -22,7 +22,7 @@ describe('StudentsController', () => {
             update: jest.fn(),
             findOneById: jest.fn(),
             fetchMyCourses: jest.fn(),
-            fetchMyClasses: jest.fn(),
+            fetchMyClassInstances: jest.fn(),
           },
         },
       ],
@@ -93,13 +93,18 @@ describe('StudentsController', () => {
     });
   });
 
-  describe('fetchMyClasses', () => {
+  describe('fetchMyClassInstances', () => {
     it('should fetch classes for a student', async () => {
       const student = buildStudentMock();
-      const mockClassInstances = [buildClassInstanceMock(), buildClassInstanceMock()];
-      jest.spyOn(service, 'fetchMyClasses').mockResolvedValueOnce(mockClassInstances);
+      const mockClassInstances = [
+        buildClassInstanceMock(),
+        buildClassInstanceMock(),
+      ];
+      jest
+        .spyOn(service, 'fetchMyClassInstances')
+        .mockResolvedValueOnce(mockClassInstances);
 
-      const result = await service.fetchMyClasses(student);
+      const result = await service.fetchMyClassInstances(student);
 
       expect(result).toBe(mockClassInstances);
     });

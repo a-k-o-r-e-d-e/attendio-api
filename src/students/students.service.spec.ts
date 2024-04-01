@@ -43,7 +43,7 @@ describe('StudentsService', () => {
         {
           provide: ClassesService,
           useValue: {
-            findAllClassesInstances: jest.fn(),
+            findAllClassInstances: jest.fn(),
           },
         },
       ],
@@ -139,7 +139,7 @@ describe('StudentsService', () => {
     });
   });
 
-  describe('fetchMyClasses', () => {
+  describe('fetchMyClassInstances', () => {
     it('should return class instances for a given student', async () => {
       const studentId = '12345';
       const student: Student = buildStudentMock({ id: studentId });
@@ -149,13 +149,13 @@ describe('StudentsService', () => {
       ];
 
       jest
-        .spyOn(classesService, 'findAllClassesInstances')
+        .spyOn(classesService, 'findAllClassInstances')
         .mockResolvedValue(expectedClassInstances);
 
-      const result = await service.fetchMyClasses(student);
+      const result = await service.fetchMyClassInstances(student);
 
       expect(result).toEqual(expectedClassInstances);
-      expect(classesService.findAllClassesInstances).toHaveBeenCalledWith({
+      expect(classesService.findAllClassInstances).toHaveBeenCalledWith({
         base: { course: { studentsEnrollments: { studentId: student.id } } },
       });
     });

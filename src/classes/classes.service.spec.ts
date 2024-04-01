@@ -57,10 +57,9 @@ describe('ClassesService', () => {
     );
   });
 
-    afterEach(() => {
-      jest.clearAllMocks();
-    });
-
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
 
   it('should be defined', () => {
     expect(service).toBeDefined();
@@ -119,7 +118,7 @@ describe('ClassesService', () => {
         .mockResolvedValueOnce(expectedClassInstances);
 
       // Act
-      const result = await service.findAllClassesInstances();
+      const result = await service.findAllClassInstances();
 
       // Assert
       expect(result).toEqual(expectedClassInstances);
@@ -138,7 +137,7 @@ describe('ClassesService', () => {
         .mockResolvedValueOnce(expectedClassInstances);
 
       // Act
-      const result = await service.findAllClassesInstances(whereClause);
+      const result = await service.findAllClassInstances(whereClause);
 
       // Assert
       expect(result).toEqual(expectedClassInstances);
@@ -211,7 +210,7 @@ describe('ClassesService', () => {
       jest
         .spyOn(service, 'findOneCourseClassById')
         .mockResolvedValue(expectedCourseClass);
-        jest.spyOn(courseClassRepo, 'delete').mockResolvedValueOnce(undefined);
+      jest.spyOn(courseClassRepo, 'delete').mockResolvedValueOnce(undefined);
 
       await service.remove(courseClassId);
 

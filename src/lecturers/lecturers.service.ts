@@ -1,4 +1,9 @@
-import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  forwardRef,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
 import { Lecturer } from './lecturer.entity';
@@ -126,8 +131,8 @@ export class LecturersService {
     });
   }
 
-  async fetchMyClasses(lecturer: Lecturer): Promise<ClassInstance[]> {
-    return await this.classesService.findAllClassesInstances({
+  async fetchMyClassInstances(lecturer: Lecturer): Promise<ClassInstance[]> {
+    return await this.classesService.findAllClassInstances({
       base: {
         course: {
           lecturer: {

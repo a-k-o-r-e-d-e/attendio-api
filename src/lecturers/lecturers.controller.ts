@@ -49,11 +49,11 @@ export class LecturersController {
 
   @Roles(Role.Lecturer)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Get('me/classes')
-  async fetchMyClasses(
+  @Get('me/classes/instances')
+  async fetchMyClassInstances(
     @Req() req: RequestWithProfile,
   ): Promise<ClassInstance[]> {
-    return this.lecturerService.fetchMyClasses(req.user as Lecturer);
+    return this.lecturerService.fetchMyClassInstances(req.user as Lecturer);
   }
 
   @UseGuards(JwtAuthGuard)

@@ -57,8 +57,10 @@ export class StudentsController {
 
   @Roles(Role.Student)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Get('me/classes')
-  async fetchMyClasses(@Req() req: RequestWithProfile): Promise<ClassInstance[]> {
-    return this.studentsService.fetchMyClasses(req.user as Student);
+  @Get('me/classes/instances')
+  async fetchMyClassInstances(
+    @Req() req: RequestWithProfile,
+  ): Promise<ClassInstance[]> {
+    return this.studentsService.fetchMyClassInstances(req.user as Student);
   }
 }

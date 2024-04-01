@@ -22,7 +22,7 @@ describe('LecturersController', () => {
             findOneById: jest.fn(),
             update: jest.fn(),
             fetchMyCourses: jest.fn(),
-            fetchMyClasses: jest.fn()
+            fetchMyClassInstances: jest.fn(),
           },
         },
       ],
@@ -52,9 +52,7 @@ describe('LecturersController', () => {
       const lecturerId = 'lecturer-id';
       const mockLecturer = buildLecturerMock({ id: lecturerId });
 
-      jest
-        .spyOn(service, 'findOneById')
-        .mockResolvedValueOnce(mockLecturer);
+      jest.spyOn(service, 'findOneById').mockResolvedValueOnce(mockLecturer);
 
       const result = await controller.findOneById(lecturerId);
 
@@ -91,7 +89,7 @@ describe('LecturersController', () => {
     });
   });
 
-  describe('fetchMyClasses', () => {
+  describe('fetchMyClassInstances', () => {
     it('should fetch classes for a lecturer', async () => {
       const lecturer = buildLecturerMock();
       const mockClassInstances = [
@@ -99,10 +97,10 @@ describe('LecturersController', () => {
         buildClassInstanceMock(),
       ];
       jest
-        .spyOn(service, 'fetchMyClasses')
+        .spyOn(service, 'fetchMyClassInstances')
         .mockResolvedValueOnce(mockClassInstances);
 
-      const result = await service.fetchMyClasses(lecturer);
+      const result = await service.fetchMyClassInstances(lecturer);
 
       expect(result).toBe(mockClassInstances);
     });
