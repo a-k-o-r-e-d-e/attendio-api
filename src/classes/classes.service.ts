@@ -3,6 +3,7 @@ import {
   forwardRef,
   Inject,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { CreateCourseClassDto } from './dto/create-class.dto';
 import { UpdateCourseClassDto } from './dto/update-class.dto';
@@ -80,16 +81,33 @@ export class ClassesService {
     return await this.classInstanceRepository.findBy(whereClause);
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} class`;
+  async findOneCourseClass(
+    whereClause?: FindOptionsWhere<CourseClass>,
+  ): Promise<CourseClass> {
+    const courseClass = await this.courseClassRepository.findOneBy(whereClause);
+    if (!courseClass) {
+      throw new NotFoundException('Class does not exist!');
+    }
+
+    return courseClass;
+  }
+
+  async findOneCourseClassById(courseClassId: string): Promise<CourseClass> {
+    return await this.findOneCourseClass({
+      id: courseClassId,
+    });
   }
 
   update(id: number, updateClassDto: UpdateCourseClassDto) {
     return `This action updates a #${id} class`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} class`;
+  async remove(id: string) {
+    const course = await this.findOneCourseClassById(id);
+    if (!course) {
+      throw new NotFoundException('Class does not exist!');
+    }
+    await this.courseClassRepository.delete(id);
   }
 
   async createFirstClassInstance(

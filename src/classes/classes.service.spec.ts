@@ -5,7 +5,11 @@ import { DataSource, EntityManager, Repository } from 'typeorm';
 import { CourseClass } from './entities/course-class.entity';
 import { ClassInstance } from './entities/class-instance.entity';
 import { CoursesService } from '../courses/courses.service';
-import { buildClassInstanceMock, buildCourseClassMock } from '../test/course-class.factory';
+import {
+  buildClassInstanceMock,
+  buildCourseClassMock,
+} from '../test/course-class.factory';
+import { NotFoundException } from '@nestjs/common';
 
 describe('ClassesService', () => {
   let service: ClassesService;
@@ -52,6 +56,11 @@ describe('ClassesService', () => {
       getRepositoryToken(ClassInstance),
     );
   });
+
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
 
   it('should be defined', () => {
     expect(service).toBeDefined();
@@ -119,9 +128,7 @@ describe('ClassesService', () => {
 
     it('should find course classes with a provided whereClause', async () => {
       // Arrange
-      const whereClause = {
-        
-      };
+      const whereClause = {};
       const expectedClassInstances = [
         buildClassInstanceMock(),
         buildClassInstanceMock(),
@@ -136,6 +143,90 @@ describe('ClassesService', () => {
       // Assert
       expect(result).toEqual(expectedClassInstances);
       expect(classInstanceRepo.findBy).toHaveBeenCalledWith(whereClause);
+    });
+  });
+
+  describe('findOneCourseClass', () => {
+    it('should return a course class when found', async () => {
+      const courseClassId = '123';
+      const expectedCourseClass = buildCourseClassMock();
+      jest
+        .spyOn(courseClassRepo, 'findOneBy')
+        .mockResolvedValue(expectedCourseClass);
+
+      const result = await service.findOneCourseClass({ id: courseClassId });
+
+      expect(result).toEqual(expectedCourseClass);
+      expect(courseClassRepo.findOneBy).toHaveBeenCalledWith({
+        id: courseClassId,
+      });
+    });
+
+    it('should throw NotFoundException when course class is not found', async () => {
+      const courseClassId = '123';
+      jest.spyOn(courseClassRepo, 'findOneBy').mockResolvedValue(undefined);
+
+      await expect(
+        service.findOneCourseClass({ id: courseClassId }),
+      ).rejects.toThrow(NotFoundException);
+      expect(courseClassRepo.findOneBy).toHaveBeenCalledWith({
+        id: courseClassId,
+      });
+    });
+  });
+
+  describe('findOneCourseClassById', () => {
+    it('should return a course class when found', async () => {
+      const courseClassId = '123';
+      const expectedCourseClass = buildCourseClassMock();
+      jest
+        .spyOn(courseClassRepo, 'findOneBy')
+        .mockResolvedValue(expectedCourseClass);
+
+      const result = await service.findOneCourseClassById(courseClassId);
+
+      expect(result).toEqual(expectedCourseClass);
+      expect(courseClassRepo.findOneBy).toHaveBeenCalledWith({
+        id: courseClassId,
+      });
+    });
+
+    it('should throw NotFoundException when course class is not found', async () => {
+      const courseClassId = '123';
+      jest.spyOn(courseClassRepo, 'findOneBy').mockResolvedValue(undefined);
+
+      await expect(
+        service.findOneCourseClassById(courseClassId),
+      ).rejects.toThrow(NotFoundException);
+      expect(courseClassRepo.findOneBy).toHaveBeenCalledWith({
+        id: courseClassId,
+      });
+    });
+  });
+
+  describe('remove', () => {
+    it('should remove a course class when found', async () => {
+      const courseClassId = '123';
+      const expectedCourseClass = buildCourseClassMock();
+      jest
+        .spyOn(service, 'findOneCourseClassById')
+        .mockResolvedValue(expectedCourseClass);
+        jest.spyOn(courseClassRepo, 'delete').mockResolvedValueOnce(undefined);
+
+      await service.remove(courseClassId);
+
+      expect(courseClassRepo.delete).toHaveBeenCalledWith(courseClassId);
+    });
+
+    it('should throw NotFoundException when course class is not found', async () => {
+      const courseClassId = '123';
+      jest
+        .spyOn(service, 'findOneCourseClassById')
+        .mockResolvedValue(undefined);
+
+      await expect(service.remove(courseClassId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 });

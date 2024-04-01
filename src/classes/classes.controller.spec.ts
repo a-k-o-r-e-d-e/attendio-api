@@ -40,7 +40,7 @@ describe('ClassesController', () => {
     expect(controller).toBeDefined();
   });
 
-  describe('create', () => {
+  describe('create a class (course-class)', () => {
     it('should create a new class', async () => {
       const createCourseClassDto = buildCreateCourseClassDtoMock();
 
@@ -58,6 +58,18 @@ describe('ClassesController', () => {
 
       // Validate the result returned by the controller
       expect(result).toEqual(expectedResult);
+    });
+  });
+
+  describe('remove', () => {
+    it('should remove a course class', async () => {
+      const courseClassId = 'class-id';
+      jest.spyOn(classesService, 'remove').mockResolvedValueOnce(undefined);
+
+      const result = await controller.remove(courseClassId);
+
+      expect(result).toEqual({ message: 'Successful' });
+      expect(classesService.remove).toHaveBeenCalledWith(courseClassId);
     });
   });
 });

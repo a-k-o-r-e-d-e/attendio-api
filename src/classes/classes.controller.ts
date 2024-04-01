@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { ClassesService } from './classes.service';
 import { CreateCourseClassDto } from './dto/create-class.dto';
@@ -27,12 +28,6 @@ export class ClassesController {
     return this.classesService.create(createClassDto);
   }
 
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.classesService.findOne(+id);
-  }
-
   @Patch(':id')
   update(
     @Param('id') id: string,
@@ -41,8 +36,13 @@ export class ClassesController {
     return this.classesService.update(+id, updateClassDto);
   }
 
+  @Roles(Role.Lecturer, Role.Admin)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.classesService.remove(+id);
+  async remove(@Param('id', new ParseUUIDPipe()) id: string) {
+    await this.classesService.remove(id);
+    return {
+      message: 'Successful',
+    };
   }
 }
