@@ -31,3 +31,8 @@ export enum ClassStatus {
   Held = 'held',
   Cancelled = 'cancelled',
 }
+
+export enum CronJobFreq {
+  Daily = 'daily',
+  Weekly = 'weekly',
+}

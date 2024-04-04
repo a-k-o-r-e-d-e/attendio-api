@@ -12,6 +12,8 @@ import { DevModule } from './dev/dev.module';
 import { StudentsModule } from './students/students.module';
 import { CoursesModule } from './courses/courses.module';
 import { ClassesModule } from './classes/classes.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { CronjobsModule } from './cronjobs/cronjobs.module';
 
 @Module({
   imports: [
@@ -31,6 +33,7 @@ import { ClassesModule } from './classes/classes.module';
         JWT_EXPIRATION_TIME: Joi.string(),
       }),
     }),
+    ScheduleModule.forRoot(),
     DatabaseModule,
     UsersModule,
     InstitutionsModule,
@@ -40,6 +43,7 @@ import { ClassesModule } from './classes/classes.module';
     StudentsModule,
     CoursesModule,
     ClassesModule,
+    CronjobsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
