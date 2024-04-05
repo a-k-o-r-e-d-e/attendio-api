@@ -3,14 +3,17 @@ import { startOfWeek } from 'date-fns';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CronJob } from './entities/cronjob.entity';
-import { MoreThanOrEqual, Repository } from 'typeorm';
+import { DataSource, MoreThanOrEqual, Repository } from 'typeorm';
 import { CronJobFreq } from '../constants/enums';
+import { ClassesService } from 'src/classes/classes.service';
 
 @Injectable()
 export class CronjobsService {
   constructor(
     @InjectRepository(CronJob)
     private readonly cronJobRepository: Repository<CronJob>,
+    private readonly classesService: ClassesService,
+    private dataSource: DataSource,
   ) {}
 
   @Cron(CronExpression.EVERY_DAY_AT_1AM)
@@ -36,7 +39,7 @@ export class CronjobsService {
     }
   }
 
-  @Cron('00 01 * * Sun')
+  @Cron('0 */12 * * *')
   async weeklyCronJobs() {
     console.log('Attempting Weekly Cron Jobs');
     try {
@@ -46,6 +49,11 @@ export class CronjobsService {
       });
       if (!existingWeeklyCron) {
         console.log('No existing weekly cron, Running weekly Cron Jobs');
+        this.dataSource.transaction(async (transactionManager) => {
+          await this.classesService.createCurrentWeekClassInstances(
+            transactionManager,
+          );
+        });
 
         await this.cronJobRepository.insert({
           frequency: CronJobFreq.Weekly,

@@ -1,3 +1,4 @@
+import { differenceInCalendarWeeks, addWeeks } from 'date-fns';
 import {
   ConflictException,
   forwardRef,
@@ -13,6 +14,8 @@ import {
   DataSource,
   EntityManager,
   FindOptionsWhere,
+  LessThanOrEqual,
+  MoreThanOrEqual,
   Repository,
 } from 'typeorm';
 import { ClassInstance } from './entities/class-instance.entity';
@@ -115,26 +118,10 @@ export class ClassesService {
     transactionManager?: EntityManager,
   ) {
     try {
-      const [startTimeHour, startTimeMin] = courseClass.start_time.split(':');
-      const [endTimeHour, endTimeMin] = courseClass.start_time.split(':');
-      const start_time = set(courseClass.start_date, {
-        hours: +startTimeHour,
-        minutes: +startTimeMin,
-        seconds: 0,
-      });
-      const end_time = set(courseClass.start_date, {
-        hours: +endTimeHour,
-        minutes: +endTimeMin,
-        seconds: 0,
-      });
-
-      const classInstance = this.classInstanceRepository.create({
-        date: courseClass.start_date,
-        start_time,
-        end_time,
-        baseId: courseClass.id,
-        // base: courseClass,
-      });
+      const classInstance = this.computeClassInstance(
+        courseClass,
+        courseClass.start_date,
+      );
 
       if (transactionManager) {
         return await transactionManager.save<ClassInstance>(classInstance);
@@ -150,10 +137,56 @@ export class ClassesService {
     }
   }
 
-  createCurrentWeekClassInstances(courseClass: CourseClass) {
-    if (courseClass.frequency == ClassFrequency.Weekly) {
-      const endOfCurrWeek = endOfWeek(new Date());
-      // const isStartDatePast =
-    }
+  async createCurrentWeekClassInstances(transactionManager: EntityManager) {
+    try {
+      const today = new Date();
+
+    const activeWeeklyClasses = await this.courseClassRepository.findBy({
+      frequency: ClassFrequency.Weekly,
+      start_date: LessThanOrEqual(today),
+      end_date: MoreThanOrEqual(today),
+    });
+
+    // console.log("Active Classes:: ", activeWeeklyClasses);
+
+    const classInstances = activeWeeklyClasses.map((courseClass) => {
+      const weeksPast = differenceInCalendarWeeks(
+        courseClass.start_date,
+        today,
+      );
+      const currentWeekDate = addWeeks(courseClass.start_date, weeksPast);
+
+      return this.computeClassInstance(courseClass, currentWeekDate);
+    });
+
+    await transactionManager.upsert(ClassInstance, classInstances, ['date', 'baseId']);
+
+    console.log("upsert Successful")
+  } catch (err) {
+    console.log("Error :: ", err)
+  }
+}
+
+  /// creates the class instance but does not save to the DB
+  private computeClassInstance(courseClass: CourseClass, date: Date) {
+    const [startTimeHour, startTimeMin] = courseClass.start_time.split(':');
+    const [endTimeHour, endTimeMin] = courseClass.end_time.split(':');
+    const start_time = set(date, {
+      hours: +startTimeHour,
+      minutes: +startTimeMin,
+      seconds: 0,
+    });
+    const end_time = set(date, {
+      hours: +endTimeHour,
+      minutes: +endTimeMin,
+      seconds: 0,
+    });
+
+    return this.classInstanceRepository.create({
+      date: date,
+      start_time,
+      end_time,
+      baseId: courseClass.id,
+    });
   }
 }
