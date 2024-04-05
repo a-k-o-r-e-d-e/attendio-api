@@ -21,7 +21,8 @@ export class CronJob {
   @IsDefined()
   frequency!: CronJobFreq;
 
-  @Column({ nullable: false, type: 'date', default: new Date() })
+  @Column({ nullable: false, type: 'date', default: () => 'CURRENT_DATE' })
+  @IsDefined()
   date!: Date;
 
   @CreateDateColumn()
