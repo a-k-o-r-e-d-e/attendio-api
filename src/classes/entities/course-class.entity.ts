@@ -6,6 +6,7 @@ import {
   IsOptional,
   IsString,
   IsUrl,
+  MinDate,
 } from 'class-validator';
 import { ClassMode, ClassFrequency } from '../../constants/enums';
 import { Course } from '../../courses/entities/course.entity';
@@ -49,10 +50,12 @@ export class CourseClass {
 
   @Column({ type: 'date' })
   @IsDate()
+  @MinDate(new Date())
   start_date: Date;
 
   @Column({ type: 'date' })
   @IsDate()
+  @MinDate(new Date())
   end_date: Date;
 
   @Column({ nullable: true })
@@ -74,7 +77,7 @@ export class CourseClass {
   course: Course;
 
   @OneToMany(() => ClassInstance, (instance) => instance.base)
-  instances: ClassInstance[]
+  instances: ClassInstance[];
 
   @CreateDateColumn({ select: false })
   @IsDate()
