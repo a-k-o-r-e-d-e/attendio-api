@@ -1,9 +1,8 @@
 import {
   Controller,
-  Get,
   Post,
   Body,
-  Patch,
+  Put,
   Param,
   Delete,
   UseGuards,
@@ -28,12 +27,12 @@ export class ClassesController {
     return this.classesService.create(createClassDto);
   }
 
-  @Patch(':id')
+  @Put(':id')
   update(
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @Body() updateClassDto: UpdateCourseClassDto,
   ) {
-    return this.classesService.update(+id, updateClassDto);
+    return this.classesService.update(id, updateClassDto);
   }
 
   @Roles(Role.Lecturer, Role.Admin)
