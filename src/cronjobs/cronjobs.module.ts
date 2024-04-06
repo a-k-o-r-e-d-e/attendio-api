@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { CronjobsService } from './cronjobs.service';
 import { CronJob } from './entities/cronjob.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ClassesModule } from 'src/classes/classes.module';
+import { ClassesModule } from '../classes/classes.module';
 
 @Module({
   imports: [TypeOrmModule.forFeature([CronJob]), ClassesModule],

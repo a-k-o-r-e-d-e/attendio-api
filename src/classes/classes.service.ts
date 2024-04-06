@@ -21,8 +21,8 @@ import {
 import { ClassInstance } from './entities/class-instance.entity';
 import { CoursesService } from '../courses/courses.service';
 import { PostgresErrorCode } from '../database/postgres-errorcodes.enum';
-import { ClassFrequency } from '../constants/enums';
-import { endOfWeek, set } from 'date-fns';
+import { ClassFrequency, ClassStatus } from '../constants/enums';
+import { set } from 'date-fns';
 
 @Injectable()
 export class ClassesService {
@@ -48,6 +48,7 @@ export class ClassesService {
       await this.dataSource.transaction(async (transactionManager) => {
         let createCourseClassObj = this.courseClassRepository.create({
           ...createClassDto,
+          title: createClassDto.title ?? course.title,
           course,
         });
 
@@ -101,8 +102,62 @@ export class ClassesService {
     });
   }
 
-  update(id: number, updateClassDto: UpdateCourseClassDto) {
-    return `This action updates a #${id} class`;
+  async update(id: string, updateClassDto: UpdateCourseClassDto) {
+    const courseClass = await this.findOneCourseClassById(id);
+
+    const courseClassUpdate = {
+      ...courseClass,
+      ...updateClassDto,
+    };
+
+    let updatedCourseClass: CourseClass;
+
+    await this.dataSource.transaction(async (transactionManager) => {
+      updatedCourseClass =
+        await transactionManager.save<CourseClass, any>(CourseClass, courseClassUpdate);
+
+      // update any pending class instance.
+      const pendingInstances = await this.classInstanceRepository.findBy({
+        status: ClassStatus.Pending,
+        baseId: courseClass.id,
+      });
+
+      const updatedClassInstances = pendingInstances.map((classInstance) => {
+        const today = new Date ();
+        // let weeksPast = 0;
+
+        // if (isPast())
+
+        const weeksPast = differenceInCalendarWeeks(
+          updatedCourseClass.start_date,
+          today,
+        );
+        console.log("Weeks Past:: ", weeksPast);
+
+        const currentWeekDate = addWeeks(
+          updatedCourseClass.start_date,
+          weeksPast,
+        );
+
+        const { start_time, end_time } =
+          this.computeClassInstanceStartAndEndTime(
+            updatedCourseClass,
+            currentWeekDate,
+          );
+
+        classInstance = {
+          ...classInstance,
+          start_time,
+          end_time,
+        };
+
+        return classInstance;
+      });
+
+      await transactionManager.save<ClassInstance, any>(ClassInstance, updatedClassInstances);
+    });
+
+    return updatedCourseClass;
   }
 
   async remove(id: string) {
@@ -141,34 +196,54 @@ export class ClassesService {
     try {
       const today = new Date();
 
-    const activeWeeklyClasses = await this.courseClassRepository.findBy({
-      frequency: ClassFrequency.Weekly,
-      start_date: LessThanOrEqual(today),
-      end_date: MoreThanOrEqual(today),
-    });
+      const activeWeeklyClasses = await this.courseClassRepository.findBy({
+        frequency: ClassFrequency.Weekly,
+        start_date: LessThanOrEqual(today),
+        end_date: MoreThanOrEqual(today),
+      });
 
-    // console.log("Active Classes:: ", activeWeeklyClasses);
+      // console.log("Active Classes:: ", activeWeeklyClasses);
 
-    const classInstances = activeWeeklyClasses.map((courseClass) => {
-      const weeksPast = differenceInCalendarWeeks(
-        courseClass.start_date,
-        today,
-      );
-      const currentWeekDate = addWeeks(courseClass.start_date, weeksPast);
+      const classInstances = activeWeeklyClasses.map((courseClass) => {
+        const weeksPast = differenceInCalendarWeeks(
+          courseClass.start_date,
+          today,
+        );
+        const currentWeekDate = addWeeks(courseClass.start_date, weeksPast);
 
-      return this.computeClassInstance(courseClass, currentWeekDate);
-    });
+        return this.computeClassInstance(courseClass, currentWeekDate);
+      });
 
-    await transactionManager.upsert(ClassInstance, classInstances, ['date', 'baseId']);
+      await transactionManager.upsert(ClassInstance, classInstances, [
+        'date',
+        'baseId',
+      ]);
 
-    console.log("upsert Successful")
-  } catch (err) {
-    console.log("Error :: ", err)
+      console.log('upsert Successful');
+    } catch (err) {
+      console.log('Error :: ', err);
+    }
   }
-}
 
   /// creates the class instance but does not save to the DB
   private computeClassInstance(courseClass: CourseClass, date: Date) {
+    const { start_time, end_time } = this.computeClassInstanceStartAndEndTime(
+      courseClass,
+      date,
+    );
+
+    return this.classInstanceRepository.create({
+      date: date,
+      start_time,
+      end_time,
+      baseId: courseClass.id,
+    });
+  }
+
+  private computeClassInstanceStartAndEndTime(
+    courseClass: CourseClass,
+    date: Date,
+  ) {
     const [startTimeHour, startTimeMin] = courseClass.start_time.split(':');
     const [endTimeHour, endTimeMin] = courseClass.end_time.split(':');
     const start_time = set(date, {
@@ -182,11 +257,6 @@ export class ClassesService {
       seconds: 0,
     });
 
-    return this.classInstanceRepository.create({
-      date: date,
-      start_time,
-      end_time,
-      baseId: courseClass.id,
-    });
+    return { start_time, end_time };
   }
 }

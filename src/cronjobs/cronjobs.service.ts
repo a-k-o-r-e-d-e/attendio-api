@@ -5,7 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { CronJob } from './entities/cronjob.entity';
 import { DataSource, MoreThanOrEqual, Repository } from 'typeorm';
 import { CronJobFreq } from '../constants/enums';
-import { ClassesService } from 'src/classes/classes.service';
+import { ClassesService } from '../classes/classes.service';
 
 @Injectable()
 export class CronjobsService {
