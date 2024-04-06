@@ -22,7 +22,7 @@ import { ClassInstance } from './entities/class-instance.entity';
 import { CoursesService } from '../courses/courses.service';
 import { PostgresErrorCode } from '../database/postgres-errorcodes.enum';
 import { ClassFrequency, ClassStatus } from '../constants/enums';
-import { set } from 'date-fns';
+import { set, isPast} from 'date-fns';
 
 @Injectable()
 export class ClassesService {
@@ -124,20 +124,18 @@ export class ClassesService {
 
       const updatedClassInstances = pendingInstances.map((classInstance) => {
         const today = new Date ();
-        // let weeksPast = 0;
+        let currentWeekDate = updatedCourseClass.start_date;
 
-        // if (isPast())
-
-        const weeksPast = differenceInCalendarWeeks(
-          updatedCourseClass.start_date,
-          today,
-        );
-        console.log("Weeks Past:: ", weeksPast);
-
-        const currentWeekDate = addWeeks(
-          updatedCourseClass.start_date,
-          weeksPast,
-        );
+        if (isPast(updatedCourseClass.start_date)) {
+          const weeksPast = differenceInCalendarWeeks(
+            updatedCourseClass.start_date,
+            today,
+          );
+          currentWeekDate = addWeeks(
+            updatedCourseClass.start_date,
+            weeksPast,
+          );
+        }        
 
         const { start_time, end_time } =
           this.computeClassInstanceStartAndEndTime(
