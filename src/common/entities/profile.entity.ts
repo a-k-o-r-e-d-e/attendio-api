@@ -1,27 +1,10 @@
-import {
-  IsDate,
-  IsNotEmpty,
-  IsPhoneNumber,
-  validateOrReject,
-} from 'class-validator';
+import { IsNotEmpty, IsPhoneNumber } from 'class-validator';
 import { User } from '../../users/user.entity';
-import {
-  BeforeInsert,
-  BeforeUpdate,
-  Column,
-  CreateDateColumn,
-  JoinColumn,
-  ManyToOne,
-  OneToOne,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Column, JoinColumn, ManyToOne, OneToOne } from 'typeorm';
 import { Institution } from '../../institutions/insititution.entity';
+import { CustomBaseEntity } from './base.entity';
 
-export abstract class Profile {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-
+export abstract class Profile extends CustomBaseEntity {
   @Column()
   @IsNotEmpty()
   title: string;
@@ -53,9 +36,9 @@ export abstract class Profile {
 
   @ManyToOne(() => Institution, {
     cascade: false,
-    eager: true, 
+    eager: true,
     nullable: false,
-    onDelete: 'RESTRICT'
+    onDelete: 'RESTRICT',
   })
   institution: Institution;
 
@@ -66,21 +49,4 @@ export abstract class Profile {
   @Column()
   @IsNotEmpty()
   faculty: string;
-
-  @CreateDateColumn({ select: false })
-  @IsDate()
-  created_at: Date;
-
-  @UpdateDateColumn({ select: false })
-  @IsDate()
-  updated_at: Date;
-
-  // HOOKS
-  @BeforeInsert()
-  @BeforeUpdate()
-  async validateUser?() {
-    await validateOrReject(this, {
-      skipMissingProperties: true,
-    });
-  }
 }

@@ -1,33 +1,15 @@
-import {
-  IsDate,
-  IsEnum,
-  IsInt,
-  IsNotEmpty,
-  IsNumber,
-  Max,
-  Min,
-} from 'class-validator';
+import { IsEnum, IsInt, IsNotEmpty, IsNumber, Max, Min } from 'class-validator';
 import { CourseCategory } from '../../constants/enums';
 import { Institution } from '../../institutions/insititution.entity';
 import { Lecturer } from '../../lecturers/lecturer.entity';
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  ManyToOne,
-  OneToMany,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
 import { StudentCourseEnrollment } from './student-course-enrollment.entity';
 import { CourseClass } from '../../classes/entities/course-class.entity';
 import { VirtualColumn } from '../../database/custom-decorators';
+import { CustomBaseEntity } from 'src/common/entities/base.entity';
 
 @Entity()
-export class Course {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-
+export class Course extends CustomBaseEntity {
   @Column()
   @IsNotEmpty()
   title: string;
@@ -86,12 +68,4 @@ export class Course {
 
   @VirtualColumn()
   is_student_enrolled?: boolean;
-  
-  @CreateDateColumn({ select: false })
-  @IsDate()
-  created_at: Date;
-
-  @UpdateDateColumn({ select: false })
-  @IsDate()
-  updated_at: Date;
 }

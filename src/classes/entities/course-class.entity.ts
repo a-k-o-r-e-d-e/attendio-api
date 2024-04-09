@@ -10,24 +10,13 @@ import {
 } from 'class-validator';
 import { ClassMode, ClassFrequency } from '../../constants/enums';
 import { Course } from '../../courses/entities/course.entity';
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  ManyToOne,
-  OneToMany,
-  PrimaryGeneratedColumn,
-  Unique,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Column, Entity, ManyToOne, OneToMany, Unique } from 'typeorm';
 import { ClassInstance } from './class-instance.entity';
+import { CustomBaseEntity } from 'src/common/entities/base.entity';
 
 @Entity()
 @Unique('unique_class_course', ['course', 'start_date', 'start_time'])
-export class CourseClass {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-
+export class CourseClass extends CustomBaseEntity {
   @Column()
   @IsNotEmpty()
   title: string;
@@ -78,12 +67,4 @@ export class CourseClass {
 
   @OneToMany(() => ClassInstance, (instance) => instance.base)
   instances: ClassInstance[];
-
-  @CreateDateColumn({ select: false })
-  @IsDate()
-  created_at: Date;
-
-  @UpdateDateColumn({ select: false })
-  @IsDate()
-  updated_at: Date;
 }

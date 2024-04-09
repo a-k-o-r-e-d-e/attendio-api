@@ -1,22 +1,12 @@
 import { IsDate, IsEnum } from 'class-validator';
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-  Unique,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Column, Entity, ManyToOne, Unique } from 'typeorm';
 import { CourseClass } from './course-class.entity';
 import { ClassStatus } from '../../constants/enums';
+import { CustomBaseEntity } from 'src/common/entities/base.entity';
 
 @Entity()
 @Unique('date_class_constraint', ['date', 'baseId'])
-export class ClassInstance {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-
+export class ClassInstance extends CustomBaseEntity {
   @Column({ type: 'enum', enum: ClassStatus, default: ClassStatus.Pending })
   @IsEnum(ClassStatus)
   status: ClassStatus;
@@ -43,12 +33,4 @@ export class ClassInstance {
     onDelete: 'CASCADE',
   })
   base: CourseClass;
-
-  @CreateDateColumn({ select: false })
-  @IsDate()
-  created_at: Date;
-
-  @UpdateDateColumn({ select: false })
-  @IsDate()
-  updated_at: Date;
 }
