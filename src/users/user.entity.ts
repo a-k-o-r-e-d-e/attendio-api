@@ -4,6 +4,7 @@ import {
   IsEmail,
   IsEnum,
   IsNotEmpty,
+  IsOptional,
   validateOrReject,
 } from 'class-validator';
 import { Factory } from 'nestjs-seeder';
@@ -52,6 +53,11 @@ export class User {
   @ArrayNotEmpty()
   @IsEnum(Role, { each: true })
   roles: Role[];
+
+  @Column({ nullable: true, unique: true, select: false })
+  @IsOptional()
+  @IsNotEmpty()
+  fcm_token?: string;
 
   @CreateDateColumn({ select: false })
   created_at: Date;

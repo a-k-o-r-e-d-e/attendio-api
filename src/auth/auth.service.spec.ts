@@ -38,6 +38,7 @@ describe('AuthService', () => {
           provide: UsersService,
           useValue: {
             getByUsernameOrEmail: jest.fn(),
+            updateFcmToken: jest.fn()
           },
         },
         {
@@ -169,7 +170,7 @@ describe('AuthService', () => {
       jest.spyOn(service, 'getProfile').mockResolvedValue(lecturer);
       jest.spyOn(jwtService, 'signAsync').mockResolvedValue('');
 
-      await service.login(user, Role.Lecturer);
+      await service.login(user, Role.Lecturer, 'sample_token');
 
       expect(service.getProfile).toHaveBeenCalledWith(
         user.username,
@@ -180,7 +181,9 @@ describe('AuthService', () => {
 
     it('should throw BadRequestException if user is not of specified type', async () => {
       const user = buildUserMock({ roles: [Role.Lecturer] });
-      await expect(service.login(user, Role.Student)).rejects.toThrow(
+      await expect(
+        service.login(user, Role.Student, 'sample_token'),
+      ).rejects.toThrow(
         new BadRequestException(
           `Authentication Failed: User is not a ${Role.Student}`,
         ),
