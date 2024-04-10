@@ -5,14 +5,19 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { CourseClass } from './entities/course-class.entity';
 import { ClassInstance } from './entities/class-instance.entity';
 import { CoursesModule } from '../courses/courses.module';
+import { ClassesGateway } from './classes.gateway';
+import { AuthModule } from 'src/auth/auth.module';
+import { WebsocketModule } from 'src/websocket/websocket.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([CourseClass, ClassInstance]),
     forwardRef(() => CoursesModule),
+    forwardRef(() => AuthModule),
+    WebsocketModule,
   ],
   controllers: [ClassesController],
-  providers: [ClassesService],
+  providers: [ClassesService, ClassesGateway],
   exports: [ClassesService],
 })
 export class ClassesModule {}

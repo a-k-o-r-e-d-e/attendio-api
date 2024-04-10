@@ -14,6 +14,7 @@ import { CoursesModule } from './courses/courses.module';
 import { ClassesModule } from './classes/classes.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { CronjobsModule } from './cronjobs/cronjobs.module';
+import { WebsocketModule } from './websocket/websocket.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { CronjobsModule } from './cronjobs/cronjobs.module';
     CoursesModule,
     ClassesModule,
     CronjobsModule,
+    WebsocketModule,
   ],
   controllers: [AppController],
   providers: [AppService],
