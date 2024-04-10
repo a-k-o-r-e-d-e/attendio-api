@@ -4,6 +4,7 @@ import {
   IsEmail,
   IsEnum,
   IsNotEmpty,
+  IsOptional,
 } from 'class-validator';
 import { Factory } from 'nestjs-seeder';
 import { Role } from '../constants/enums';
@@ -42,4 +43,9 @@ export class User extends CustomBaseEntity {
   @ArrayNotEmpty()
   @IsEnum(Role, { each: true })
   roles: Role[];
+
+  @Column({ nullable: true, unique: true, select: false })
+  @IsOptional()
+  @IsNotEmpty()
+  fcm_token?: string;
 }

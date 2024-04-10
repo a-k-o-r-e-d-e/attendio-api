@@ -30,9 +30,14 @@ export enum ClassStatus {
   Pending = 'pending',
   Held = 'held',
   Cancelled = 'cancelled',
+  OnGoinging = 'ongoing',
 }
 
 export enum CronJobFreq {
   Daily = 'daily',
   Weekly = 'weekly',
+}
+
+export enum NotificationType {
+  ClassStarted = 'class-started',
 }

@@ -78,4 +78,30 @@ describe('UsersService', () => {
       ).rejects.toThrow(NotFoundException);
     });
   });
+
+  describe('updateFcmToken', () => {
+    it('should update the user FCM token and return the updated user', async () => {
+      // Arrange
+      const user: User = buildUserMock({
+        id: '1',
+        username: 'testuser',
+        email: 'test@example.com',
+        fcm_token: '',
+      });
+      const updatedUser: User = buildUserMock({
+        ...user,
+        fcm_token: 'new-fcm-token',
+      });
+      
+      jest.spyOn(repository, 'save').mockResolvedValueOnce(updatedUser)
+      jest.spyOn(service, 'getById').mockResolvedValue(updatedUser);
+
+      const result = await service.updateFcmToken(user, 'new-fcm-token');
+
+      // Assert
+      expect(result).toEqual(updatedUser);
+      expect(repository.save).toHaveBeenCalledWith(user);
+    });
+
+  });
 });

@@ -36,4 +36,10 @@ export class UsersService {
     }
     return user;
   }
+
+  async updateFcmToken(user: User, fcmToken: string) {
+    user.fcm_token = fcmToken;
+    await this.userRepository.save(user);
+    return this.getById(user.id);
+  }
 }

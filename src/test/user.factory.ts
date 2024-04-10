@@ -1,4 +1,4 @@
-import { User } from "../users/user.entity";
+import { User } from '../users/user.entity';
 import * as bcrypt from 'bcrypt';
 
 export const buildUserMock = (inputs?: Partial<User>) => {
@@ -10,6 +10,7 @@ export const buildUserMock = (inputs?: Partial<User>) => {
     created_at: new Date(),
     updated_at: new Date(),
     ...inputs,
-    password: bcrypt.hashSync(inputs?.password ?? 'password', 10),
+    password:
+      inputs?.password ?? bcrypt.hashSync(inputs?.password ?? 'password', 10),
   };
 };

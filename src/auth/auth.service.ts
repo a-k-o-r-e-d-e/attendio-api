@@ -82,19 +82,33 @@ export class AuthService {
     }
   }
 
-  async login(user: User, userType: Role) {
-    if (![Role.Admin, userType].some((role) => user.roles.includes(role))) {
+  async login(user: User, user_type: Role, fcm_token: string) {
+    if (![Role.Admin, user_type].some((role) => user.roles.includes(role))) {
       throw new BadRequestException(
-        `Authentication Failed: User is not a ${userType}`,
+        `Authentication Failed: User is not a ${user_type}`,
       );
     }
 
-    const profile = await this.getProfile(user.username, userType);
+    const profile = await this.getProfile(user.username, user_type);
+
+    try {
+      await this.usersService.updateFcmToken(user, fcm_token);
+    } catch (error) {
+      console.error('Error: ', error);
+      if (error?.code === PostgresErrorCode.UniqueViolation) {
+        throw new BadRequestException(
+          error?.detail ?? 'Duplicate Fcm Token',
+        );
+      }
+
+      throw error;
+    }
+    
 
     const payload: JwtPayload = {
       username: user.username,
       user_id: user.id,
-      user_type: userType,
+      user_type,
     };
     return {
       access_token: await this.jwtService.signAsync(payload),
