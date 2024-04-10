@@ -131,9 +131,6 @@ describe('CoursesService', () => {
 
       const result = await service.findAll(user);
 
-      console.log("Results:: ", result);
-      console.log("Raw Results:: ", rawResults)
-
       expect(result).toEqual(rawResults);
       expect(queryBuilderMock.setFindOptions).toHaveBeenCalledWith({
         where: {

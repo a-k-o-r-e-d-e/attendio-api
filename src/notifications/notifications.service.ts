@@ -1,7 +1,7 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Messaging } from 'firebase-admin/messaging';
-import { FirebaseMessaging } from '../config/firebase.config';
+import * as Firebase from '../config/firebase.config';
 import { NotificationType } from '../constants/enums';
 import { Notification } from './entities/notification.entity';
 import { Repository } from 'typeorm';
@@ -11,7 +11,7 @@ import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class NotificationsService {
-    private readonly firebaseMessaging: Messaging = FirebaseMessaging;
+    private readonly firebaseMessaging: Messaging = Firebase.FirebaseMessaging;
   constructor(
     @InjectRepository(Notification)
     private readonly notificationRepo: Repository<Notification>,
@@ -20,6 +20,7 @@ export class NotificationsService {
 
   async updateFcmToken(user: User, fcmToken: string) {
     await this.userService.updateFcmToken(user, fcmToken);
+    // await this.sendNotification({type: NotificationType.ClassStarted, userId: user.id, fcmToken, title: "Jekomo", data: {}})
   }
 
   public async sendNotification({

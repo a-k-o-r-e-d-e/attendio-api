@@ -1,15 +1,16 @@
 import * as firebaseAdmin from 'firebase-admin';
-import { getMessaging } from 'firebase-admin/messaging';
+import * as firebaseMessaging from 'firebase-admin/messaging';
 import EnvVars from '../constants/EnvVars';
 
-const config = {
-  credential: firebaseAdmin.credential.cert(EnvVars.FIREBASE_CONFIG as any),
-};
+console.log('EnvVars::', EnvVars.FIREBASE_CONFIG);
 
 /// set up firebase
 const firebaseApp = firebaseAdmin.initializeApp({
-  credential: config.credential,
-  databaseURL: 'https://milk-meets-honey-default-rtdb.firebaseio.com',
+  credential: firebaseAdmin.credential.cert({
+    projectId: EnvVars.FIREBASE_CONFIG.project_id,
+    privateKey: EnvVars.FIREBASE_CONFIG.private_key,
+    clientEmail: EnvVars.FIREBASE_CONFIG.client_email,
+  }),
 });
 
-export const FirebaseMessaging = getMessaging();
+export const FirebaseMessaging = firebaseMessaging.getMessaging(firebaseApp);

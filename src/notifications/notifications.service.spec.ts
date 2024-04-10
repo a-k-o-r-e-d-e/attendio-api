@@ -9,11 +9,27 @@ import { NotificationData } from './interfaces/notification-data.interface';
 import { NotificationType } from '../constants/enums';
 import { buildNotificationMock } from '../test/notification.factory';
 import { InternalServerErrorException } from '@nestjs/common';
+import { Messaging } from 'firebase-admin/messaging';
+
+jest.mock('firebase-admin', () => ({
+  ...jest.mock('firebase-admin'),
+  credential: {
+    cert: jest.fn(),
+  },
+  initializeApp: jest.fn(),
+}));
+
+jest.mock('firebase-admin/messaging', () => ({
+  getMessaging: jest.fn().mockReturnValueOnce({
+    send: jest.fn(),
+  }),
+}));
 
 describe('NotificationsService', () => {
   let service: NotificationsService;
   let notificationRepo: Repository<Notification>;
   let usersService: UsersService;
+  let firebaseMessaging: Messaging;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -29,6 +45,12 @@ describe('NotificationsService', () => {
             updateFcmToken: jest.fn(),
           },
         },
+        // {
+        //   provide: Messaging,
+        //   useValue: {
+        //     send: jest.fn(),
+        //   },
+        // },
       ],
     }).compile();
 
@@ -67,13 +89,17 @@ describe('NotificationsService', () => {
       const data: NotificationData = { key: 'value' };
       const type = NotificationType.ClassStarted;
 
-      const notificationMock = buildNotificationMock()
+      const notificationMock = buildNotificationMock();
 
       jest
         .spyOn(notificationRepo, 'create')
         .mockReturnValueOnce(notificationMock);
-      jest.spyOn(notificationRepo, 'save').mockResolvedValueOnce(notificationMock);
-      jest.spyOn((service as any).firebaseMessaging, 'send').mockResolvedValueOnce({});
+      jest
+        .spyOn(notificationRepo, 'save')
+        .mockResolvedValueOnce(notificationMock);
+      jest
+        .spyOn((service as any).firebaseMessaging, 'send')
+        .mockResolvedValueOnce({});
 
       await service.sendNotification({
         userId,
@@ -99,8 +125,12 @@ describe('NotificationsService', () => {
 
       let notificationMock = buildNotificationMock();
 
-      jest.spyOn(notificationRepo, 'create').mockReturnValueOnce(notificationMock)
-      jest.spyOn(notificationRepo, 'save').mockResolvedValueOnce(notificationMock);
+      jest
+        .spyOn(notificationRepo, 'create')
+        .mockReturnValueOnce(notificationMock);
+      jest
+        .spyOn(notificationRepo, 'save')
+        .mockResolvedValueOnce(notificationMock);
       jest
         .spyOn((service as any).firebaseMessaging, 'send')
         .mockRejectedValueOnce(new Error(errorMessage));
@@ -120,6 +150,4 @@ describe('NotificationsService', () => {
       }
     });
   });
-
-
 });

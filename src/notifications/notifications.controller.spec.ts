@@ -5,6 +5,20 @@ import { UpdateFcmTokenDto } from './dto/update-fcm-token.dto';
 import { buildStudentMock } from '../test/student.factory';
 import { RequestWithProfile } from '../auth/interfaces/request-with-user.interface';
 
+jest.mock('firebase-admin', () => ({
+  ...jest.mock('firebase-admin'),
+  credential: {
+    cert: jest.fn(),
+  },
+  initializeApp: jest.fn(),
+}));
+
+jest.mock('firebase-admin/messaging', () => ({
+  getMessaging: jest.fn().mockReturnValueOnce({
+    send: jest.fn(),
+  }),
+}));
+
 describe('NotificationsController', () => {
   let controller: NotificationsController;
    let notificationsService: NotificationsService;
