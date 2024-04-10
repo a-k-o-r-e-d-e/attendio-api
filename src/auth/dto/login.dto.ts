@@ -10,4 +10,7 @@ export class LoginDto {
 
   @IsEnum(Role)
   user_type: Role;
+
+  @IsNotEmpty()
+  fcm_token: string;
 }

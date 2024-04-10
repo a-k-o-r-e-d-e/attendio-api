@@ -16,6 +16,7 @@ import { LoginDto } from './dto/login.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { CreateStudentDto } from '../students/dto/create-student.dto';
 import { Role } from '../constants/enums';
+import { UpdateFcmTokenDto } from '../notifications/dto/update-fcm-token.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -39,15 +40,19 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @Post('login')
   async login(@Req() req: RequestWithUser, @Body() loginDto: LoginDto) {
-    return this.authService.login(req.user, loginDto.user_type);
+    return this.authService.login(req.user, loginDto.user_type, loginDto.fcm_token);
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get('token')
-  authenticate(@Req() req: RequestWithProfile) {
+  @Post('token')
+  authenticate(
+    @Req() req: RequestWithProfile,
+    @Body() updateFcmTokenDto: UpdateFcmTokenDto,
+  ) {
     return this.authService.login(
       req.user.user,
       req.user.user.roles.find((val) => val !== Role.Admin),
+      updateFcmTokenDto.fcm_token
     );
   }
 }
