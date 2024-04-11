@@ -28,6 +28,7 @@ export class AttendanceService {
       return this.attendanceRepository.create({
         class_instance: classInstance,
         student_enrollment: studentEnrollment,
+        is_present: false
       });
     });
 

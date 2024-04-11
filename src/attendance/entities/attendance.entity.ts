@@ -27,4 +27,7 @@ export class Attendance extends CustomBaseEntity {
     onDelete: 'CASCADE',
   })
   student_enrollment: StudentCourseEnrollment;
+
+  @Column()
+  is_present: boolean;
 }
