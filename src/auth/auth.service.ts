@@ -18,7 +18,7 @@ import { CreateStudentDto } from '../students/dto/create-student.dto';
 import { StudentsService } from '../students/students.service';
 import { Lecturer } from '../lecturers/lecturer.entity';
 import { Student } from '../students/entities/student.entity';
-import { LoginDto } from './dto/login.dto';
+import EnvVars from '../constants/EnvVars';
 
 @Injectable()
 export class AuthService {
@@ -156,5 +156,19 @@ export class AuthService {
       password: await this.hashPassword(profile.user.password),
       roles: [role],
     };
+  }
+
+  async getProfileFromAuthToken(authToken: string) {
+    const payload: JwtPayload = this.jwtService.verify(authToken, {
+      secret: EnvVars.JWT_SECRET,
+    });
+
+    const userId = payload.user_id;
+
+    if (userId) {
+      return this.getProfile(payload.username, payload.user_type);
+    }
+
+    return null;
   }
 }

@@ -15,6 +15,7 @@ import { ClassesModule } from './classes/classes.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { CronjobsModule } from './cronjobs/cronjobs.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { WebsocketModule } from './websocket/websocket.module';
 
 @Module({
   imports: [
@@ -32,17 +33,9 @@ import { NotificationsModule } from './notifications/notifications.module';
         PORT: Joi.number(),
         JWT_SECRET: Joi.string().required(),
         JWT_EXPIRATION_TIME: Joi.string(),
-        FIREBASE_TYPE: Joi.string().required(),
         FIREBASE_PROJECT_ID: Joi.string().required(),
-        FIREBASE_PRIVATE_KEY_ID: Joi.string().required(),
         FIREBASE_PRIVATE_KEY: Joi.string().required(),
         FIREBASE_CLIENT_EMAIL: Joi.string().required(),
-        FIREBASE_CLIENT_ID: Joi.string().required(),
-        FIREBASE_AUTH_URI: Joi.string().required(),
-        FIREBASE_TOKEN_URI: Joi.string().required(),
-        FIREBASE_AUTH_PROVIDER_CERT_URL: Joi.string().required(),
-        FIREBASE_CERT_URL: Joi.string().required(),
-        FIREBASE_UNIVERSE_DOMAIN: Joi.string().required(),
       }),
     }),
     ScheduleModule.forRoot(),
@@ -57,6 +50,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     ClassesModule,
     CronjobsModule,
     NotificationsModule,
+    WebsocketModule,
   ],
   controllers: [AppController],
   providers: [AppService],

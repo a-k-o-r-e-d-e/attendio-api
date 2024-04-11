@@ -1,22 +1,11 @@
-import { IsDefined, validateOrReject } from 'class-validator';
-import {
-  BeforeInsert,
-  BeforeUpdate,
-  Column,
-  CreateDateColumn,
-  Entity,
-  PrimaryGeneratedColumn,
-  Unique,
-  UpdateDateColumn,
-} from 'typeorm';
+import { IsDefined } from 'class-validator';
+import { Column, Entity, Unique } from 'typeorm';
 import { CronJobFreq } from '../../constants/enums';
+import { CustomBaseEntity } from '../../common/entities/base.entity';
 
 @Entity()
 @Unique(['frequency', 'date'])
-export class CronJob {
-  @PrimaryGeneratedColumn('uuid')
-  public id!: string;
-
+export class CronJob extends CustomBaseEntity {
   @Column({ nullable: false, type: 'enum', enum: CronJobFreq })
   @IsDefined()
   frequency!: CronJobFreq;
@@ -24,17 +13,4 @@ export class CronJob {
   @Column({ nullable: false, type: 'date', default: () => 'CURRENT_DATE' })
   @IsDefined()
   date!: Date;
-
-  @CreateDateColumn()
-  created_at!: Date;
-
-  @UpdateDateColumn()
-  updated_at!: Date;
-
-  // HOOKS
-  @BeforeInsert()
-  @BeforeUpdate()
-  async validateUser?() {
-    await validateOrReject(this, { skipMissingProperties: true });
-  }
 }

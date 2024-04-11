@@ -9,7 +9,7 @@ export function buildNotificationMock(partial?: Partial<Notification>): Notifica
     title: 'Notification Title',
     body: 'Notification Body',
     isRead: false,
-    data: { key: 'value' },
+    data: {message: ""},
     ...partial,
     user: {
       ...buildUserMock(partial?.user),

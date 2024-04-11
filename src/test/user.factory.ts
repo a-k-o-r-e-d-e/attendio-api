@@ -9,6 +9,7 @@ export const buildUserMock = (inputs?: Partial<User>) => {
     roles: [],
     created_at: new Date(),
     updated_at: new Date(),
+    fcm_token: 'sample_token',
     ...inputs,
     password:
       inputs?.password ?? bcrypt.hashSync(inputs?.password ?? 'password', 10),

@@ -2,8 +2,6 @@ import * as firebaseAdmin from 'firebase-admin';
 import * as firebaseMessaging from 'firebase-admin/messaging';
 import EnvVars from '../constants/EnvVars';
 
-console.log('EnvVars::', EnvVars.FIREBASE_CONFIG);
-
 /// set up firebase
 const firebaseApp = firebaseAdmin.initializeApp({
   credential: firebaseAdmin.credential.cert({

@@ -5,30 +5,20 @@ import {
   IsEnum,
   IsNotEmpty,
   IsOptional,
-  validateOrReject,
 } from 'class-validator';
 import { Factory } from 'nestjs-seeder';
 import { Role } from '../constants/enums';
-import {
-  Entity,
-  Column,
-  PrimaryGeneratedColumn,
-  BeforeInsert,
-  BeforeUpdate,
-  CreateDateColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Entity, Column } from 'typeorm';
 import { Exclude } from 'class-transformer';
 import { IsCustomStrongPassword } from './strong-password.decorator';
+import { CustomBaseEntity } from '../common/entities/base.entity';
 
 @Entity()
-export class User {
+export class User extends CustomBaseEntity {
   constructor(partial: Partial<User>) {
+    super();
     Object.assign(this, partial);
   }
-
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
 
   @Factory((faker) => faker.internet.userName())
   @Column({ unique: true })
@@ -57,20 +47,6 @@ export class User {
   @Column({ nullable: true, unique: true, select: false })
   @IsOptional()
   @IsNotEmpty()
+  @Exclude()
   fcm_token?: string;
-
-  @CreateDateColumn({ select: false })
-  created_at: Date;
-
-  @UpdateDateColumn({ select: false })
-  updated_at: Date;
-
-  // HOOKS
-  @BeforeInsert()
-  @BeforeUpdate()
-  async validateUser?() {
-    await validateOrReject(this, {
-      skipMissingProperties: true,
-    });
-  }
 }

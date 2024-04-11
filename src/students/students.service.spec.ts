@@ -1,3 +1,4 @@
+import '../test/mocks/firebase.mock';
 import { Test, TestingModule } from '@nestjs/testing';
 import { StudentsService } from './students.service';
 import { Student } from './entities/student.entity';
@@ -128,9 +129,7 @@ describe('StudentsService', () => {
     it('should fetch courses a student enrolled for', async () => {
       const student = buildStudentMock({ id: 'student-id' });
       const mockCourses = [buildCourseMock(), buildCourseMock()];
-      jest
-        .spyOn(coursesService, 'findAll')
-        .mockResolvedValueOnce(mockCourses);
+      jest.spyOn(coursesService, 'findAll').mockResolvedValueOnce(mockCourses);
 
       const result = await service.fetchMyCourses(student);
 

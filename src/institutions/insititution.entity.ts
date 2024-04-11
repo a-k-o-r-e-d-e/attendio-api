@@ -1,20 +1,10 @@
-import { IsDate, IsEnum, IsNotEmpty, validateOrReject } from 'class-validator';
+import { IsEnum, IsNotEmpty } from 'class-validator';
 import { InstitutionType } from '../constants/enums';
-import {
-  Entity,
-  Column,
-  PrimaryGeneratedColumn,
-  BeforeInsert,
-  BeforeUpdate,
-  CreateDateColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Entity, Column } from 'typeorm';
+import { CustomBaseEntity } from '../common/entities/base.entity';
 
 @Entity()
-export class Institution {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-
+export class Institution extends CustomBaseEntity {
   @Column({ unique: true })
   @IsNotEmpty()
   name: string;
@@ -38,21 +28,4 @@ export class Institution {
   @Column()
   @IsNotEmpty()
   country: string;
-
-  @CreateDateColumn({ select: false })
-  @IsDate()
-  created_at: Date;
-
-  @UpdateDateColumn({ select: false })
-  @IsDate()
-  updated_at: Date;
-
-  // HOOKS
-  @BeforeInsert()
-  @BeforeUpdate()
-  async validateUser?() {
-    await validateOrReject(this, {
-      skipMissingProperties: true,
-    });
-  }
 }

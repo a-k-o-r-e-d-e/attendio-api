@@ -192,6 +192,44 @@ export class CoursesService {
     });
   }
 
+  async findOneStudentEnrollment(
+    whereClause?: FindOptionsWhere<StudentCourseEnrollment>,
+  ): Promise<StudentCourseEnrollment> {
+    const studentEnrollment =
+      await this.studentEnrollmentRepo.findOneBy(whereClause);
+    if (!studentEnrollment) {
+      throw new NotFoundException('No record of student enrollment found!');
+    }
+
+    return studentEnrollment;
+  }
+
+  async findOneStudentCourseEnrollmentById(
+    id: string,
+  ): Promise<StudentCourseEnrollment> {
+    return await this.findOneStudentEnrollment({
+      id: id,
+    });
+  }
+
+  async fetchStudentEnrollments(
+    whereClause?: FindOptionsWhere<StudentCourseEnrollment>,
+    addSelect: string[] = [],
+  ): Promise<StudentCourseEnrollment[]> {
+    const studentEnrollments = await this.studentEnrollmentRepo
+      .createQueryBuilder('enrollments')
+      .leftJoinAndSelect('enrollments.student', 'student')
+      .leftJoinAndSelect('student.user', 'user')
+      .setFindOptions({
+        where: whereClause,
+      })
+
+      .addSelect(addSelect)
+      .getMany();
+
+    return studentEnrollments;
+  }
+
   async fetchCourseClasses(courseId: string) {
     const course = await this.findOneById(courseId);
     return await this.classesService.findAllCourseClasses({

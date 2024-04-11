@@ -1,22 +1,11 @@
-import { IsDate } from 'class-validator';
 import { Student } from '../../students/entities/student.entity';
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-  Unique,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Column, Entity, ManyToOne, Unique } from 'typeorm';
 import { Course } from './course.entity';
+import { CustomBaseEntity } from '../../common/entities/base.entity';
 
 @Entity()
 @Unique('student-course-unique', ['studentId', 'courseId'])
-export class StudentCourseEnrollment {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-
+export class StudentCourseEnrollment extends CustomBaseEntity {
   @Column()
   public studentId: string;
 
@@ -33,12 +22,4 @@ export class StudentCourseEnrollment {
     onDelete: 'CASCADE',
   })
   public course: Course;
-
-  @CreateDateColumn({ select: false })
-  @IsDate()
-  created_at: Date;
-
-  @UpdateDateColumn({ select: false })
-  @IsDate()
-  updated_at: Date;
 }

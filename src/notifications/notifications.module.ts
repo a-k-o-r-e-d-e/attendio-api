@@ -9,5 +9,6 @@ import { UsersModule } from '../users/users.module';
   imports: [TypeOrmModule.forFeature([Notification]), UsersModule],
   controllers: [NotificationsController],
   providers: [NotificationsService],
+  exports: [NotificationsService]
 })
 export class NotificationsModule {}
