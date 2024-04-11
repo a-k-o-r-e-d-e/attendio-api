@@ -6,7 +6,7 @@ import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
 import { StudentCourseEnrollment } from './student-course-enrollment.entity';
 import { CourseClass } from '../../classes/entities/course-class.entity';
 import { VirtualColumn } from '../../database/custom-decorators';
-import { CustomBaseEntity } from 'src/common/entities/base.entity';
+import { CustomBaseEntity } from '../../common/entities/base.entity';
 
 @Entity()
 export class Course extends CustomBaseEntity {

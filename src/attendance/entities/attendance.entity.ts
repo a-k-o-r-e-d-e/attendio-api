@@ -1,6 +1,6 @@
-import { ClassInstance } from 'src/classes/entities/class-instance.entity';
-import { CustomBaseEntity } from 'src/common/entities/base.entity';
-import { StudentCourseEnrollment } from 'src/courses/entities/student-course-enrollment.entity';
+import { ClassInstance } from '../../classes/entities/class-instance.entity';
+import { CustomBaseEntity } from '../../common/entities/base.entity';
+import { StudentCourseEnrollment } from '../../courses/entities/student-course-enrollment.entity';
 import { Column, Entity, ManyToOne, Unique } from 'typeorm';
 
 @Entity()

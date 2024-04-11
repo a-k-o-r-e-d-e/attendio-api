@@ -1,7 +1,7 @@
 import { IsDefined } from 'class-validator';
 import { Column, Entity, Unique } from 'typeorm';
 import { CronJobFreq } from '../../constants/enums';
-import { CustomBaseEntity } from 'src/common/entities/base.entity';
+import { CustomBaseEntity } from '../../common/entities/base.entity';
 
 @Entity()
 @Unique(['frequency', 'date'])

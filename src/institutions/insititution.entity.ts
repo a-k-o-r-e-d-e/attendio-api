@@ -1,7 +1,7 @@
 import { IsEnum, IsNotEmpty } from 'class-validator';
 import { InstitutionType } from '../constants/enums';
 import { Entity, Column } from 'typeorm';
-import { CustomBaseEntity } from 'src/common/entities/base.entity';
+import { CustomBaseEntity } from '../common/entities/base.entity';
 
 @Entity()
 export class Institution extends CustomBaseEntity {

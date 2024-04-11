@@ -82,11 +82,10 @@ describe('NotificationsService', () => {
 
   describe('sendNotification', () => {
     it('should send a notification successfully', async () => {
-      const userId = 'user-id';
-      const fcmToken = 'fcm-token';
+      const user = buildUserMock({ id: 'user-id' });
       const title = 'Notification Title';
       const body = 'Notification Body';
-      const data: NotificationData = { key: 'value' };
+      const data: NotificationData = { message: 'value' };
       const type = NotificationType.ClassStarted;
 
       const notificationMock = buildNotificationMock();
@@ -102,8 +101,7 @@ describe('NotificationsService', () => {
         .mockResolvedValueOnce({});
 
       await service.sendNotification({
-        userId,
-        fcmToken,
+        user,
         title,
         body,
         data,
@@ -115,11 +113,10 @@ describe('NotificationsService', () => {
     });
 
     it('should throw an InternalServerErrorException if sending notification fails', async () => {
-      const userId = 'user-id';
-      const fcmToken = 'fcm-token';
+      const user = buildUserMock({id: 'user-id'});
       const title = 'Notification Title';
       const body = 'Notification Body';
-      const data: NotificationData = { key: 'value' };
+      const data: NotificationData = { message: 'value' };
       const type = NotificationType.ClassStarted;
       const errorMessage = 'Error sending notification';
 
@@ -137,8 +134,7 @@ describe('NotificationsService', () => {
 
       try {
         await service.sendNotification({
-          userId,
-          fcmToken,
+          user,
           title,
           body,
           data,

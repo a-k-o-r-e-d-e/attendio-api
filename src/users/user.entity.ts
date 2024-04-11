@@ -11,7 +11,7 @@ import { Role } from '../constants/enums';
 import { Entity, Column } from 'typeorm';
 import { Exclude } from 'class-transformer';
 import { IsCustomStrongPassword } from './strong-password.decorator';
-import { CustomBaseEntity } from 'src/common/entities/base.entity';
+import { CustomBaseEntity } from '../common/entities/base.entity';
 
 @Entity()
 export class User extends CustomBaseEntity {

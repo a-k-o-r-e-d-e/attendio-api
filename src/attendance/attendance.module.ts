@@ -1,9 +1,9 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { AttendanceService } from './attendance.service';
-import { ClassesModule } from 'src/classes/classes.module';
+import { ClassesModule } from '../classes/classes.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Attendance } from './entities/attendance.entity';
-import { CoursesModule } from 'src/courses/courses.module';
+import { CoursesModule } from '../courses/courses.module';
 import { AttendanceGateway } from './attendance.gateway';
 
 @Module({

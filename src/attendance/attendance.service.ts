@@ -1,13 +1,11 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
-import { CreateAttendanceDto } from './dto/create-attendance.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Attendance } from './entities/attendance.entity';
 import { Repository } from 'typeorm';
-import { ClassesService } from 'src/classes/classes.service';
-import { Student } from 'src/students/entities/student.entity';
-import { CoursesService } from 'src/courses/courses.service';
-import { ClassInstance } from 'src/classes/entities/class-instance.entity';
-import { StudentCourseEnrollment } from 'src/courses/entities/student-course-enrollment.entity';
+import { ClassesService } from '../classes/classes.service';
+import { CoursesService } from '../courses/courses.service';
+import { ClassInstance } from '../classes/entities/class-instance.entity';
+import { StudentCourseEnrollment } from '../courses/entities/student-course-enrollment.entity';
 
 @Injectable()
 export class AttendanceService {

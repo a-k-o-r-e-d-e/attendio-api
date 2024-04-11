@@ -12,7 +12,7 @@ import { ClassMode, ClassFrequency } from '../../constants/enums';
 import { Course } from '../../courses/entities/course.entity';
 import { Column, Entity, ManyToOne, OneToMany, Unique } from 'typeorm';
 import { ClassInstance } from './class-instance.entity';
-import { CustomBaseEntity } from 'src/common/entities/base.entity';
+import { CustomBaseEntity } from '../../common/entities/base.entity';
 
 @Entity()
 @Unique('unique_class_course', ['course', 'start_date', 'start_time'])

@@ -4,15 +4,15 @@ import {
   SubscribeMessage,
   WebSocketGateway,
 } from '@nestjs/websockets';
-import { Roles } from 'src/auth/role.decorator';
-import { Role } from 'src/constants/enums';
-import { WsJwtGuard } from 'src/auth/guards/ws-jwt-auth.guard';
-import RolesGuard from 'src/auth/guards/role.guard';
-import { BaseWSGateway } from 'src/websocket/websocket.gateway';
-import { WebsocketService } from 'src/websocket/websocket.service';
+import { Roles } from '../auth/role.decorator';
+import { Role } from '../constants/enums';
+import { WsJwtGuard } from '../auth/guards/ws-jwt-auth.guard';
+import RolesGuard from '../auth/guards/role.guard';
+import { BaseWSGateway } from '../websocket/websocket.gateway';
+import { WebsocketService } from '../websocket/websocket.service';
 import { ClassesService } from './classes.service';
 import { StartClassDto } from './dto/start-class.dto';
-import { HttpExceptionTransformationFilter } from 'src/websocket/filters/ws-exception.filter';
+import { HttpExceptionTransformationFilter } from '../websocket/filters/ws-exception.filter';
 
 @WebSocketGateway()
 @UseInterceptors(ClassSerializerInterceptor)
@@ -29,7 +29,7 @@ export class ClassesGateway extends BaseWSGateway {
   @UseGuards(WsJwtGuard, RolesGuard)
   @UsePipes(new ValidationPipe())
   @SubscribeMessage('start-class')
-  async handleMessage(@MessageBody() startClassDto: StartClassDto) {
+  async handleStartClass(@MessageBody() startClassDto: StartClassDto) {
     return await this.classesService.startClass(
       startClassDto.class_instance_id,
     );

@@ -2,7 +2,7 @@ import { IsDate, IsDateString, IsEnum } from 'class-validator';
 import { Column, Entity, ManyToOne, Unique } from 'typeorm';
 import { CourseClass } from './course-class.entity';
 import { ClassStatus } from '../../constants/enums';
-import { CustomBaseEntity } from 'src/common/entities/base.entity';
+import { CustomBaseEntity } from '../../common/entities/base.entity';
 
 @Entity()
 @Unique('date_class_constraint', ['date', 'baseId'])

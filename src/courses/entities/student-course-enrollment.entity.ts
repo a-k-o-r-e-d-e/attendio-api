@@ -1,7 +1,7 @@
 import { Student } from '../../students/entities/student.entity';
 import { Column, Entity, ManyToOne, Unique } from 'typeorm';
 import { Course } from './course.entity';
-import { CustomBaseEntity } from 'src/common/entities/base.entity';
+import { CustomBaseEntity } from '../../common/entities/base.entity';
 
 @Entity()
 @Unique('student-course-unique', ['studentId', 'courseId'])

@@ -1,3 +1,4 @@
+import { StartClassDto } from '../classes/dto/start-class.dto';
 import { CreateCourseClassDto } from '../classes/dto/create-class.dto';
 import { UpdateCourseClassDto } from '../classes/dto/update-class.dto';
 import { ClassInstance } from '../classes/entities/class-instance.entity';
@@ -69,6 +70,13 @@ export function buildUpdateCourseClassDtoMock(
   partial: Partial<UpdateCourseClassDto>,
 ): UpdateCourseClassDto {
   return {
+    ...partial,
+  };
+}
+
+export function buildStartClassDtoMock(partial?: Partial<StartClassDto>): StartClassDto {
+  return {
+    class_instance_id: 'class_instance_id',
     ...partial,
   };
 }

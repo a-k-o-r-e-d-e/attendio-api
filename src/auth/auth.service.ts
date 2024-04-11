@@ -18,7 +18,7 @@ import { CreateStudentDto } from '../students/dto/create-student.dto';
 import { StudentsService } from '../students/students.service';
 import { Lecturer } from '../lecturers/lecturer.entity';
 import { Student } from '../students/entities/student.entity';
-import EnvVars from 'src/constants/EnvVars';
+import EnvVars from '../constants/EnvVars';
 
 @Injectable()
 export class AuthService {
