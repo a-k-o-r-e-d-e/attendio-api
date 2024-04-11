@@ -25,36 +25,39 @@ export class NotificationsService {
 
   public async sendNotification({
     type,
-    userId,
-    fcmToken,
+    user,
     title,
     body = '',
     data,
   }: {
-    userId: string;
-    fcmToken: string;
+    user: User;
     title: string;
     body?: string;
     data: NotificationData;
     type: NotificationType;
   }) {
-    const message = {
-      token: fcmToken,
-      data: data,
-      notification: { title, body },
-    };
 
     try {
+      if (!user.fcm_token) {
+        throw new InternalServerErrorException(
+          'User passed to fucntion missing fcm_token property',
+        );
+      }
+      const message = {
+        token: user.fcm_token,
+        data: data,
+        notification: { title, body },
+      };
+
       const notificationRecord = this.notificationRepo.create({
         type: type,
-        user: { id: userId },
+        user: { id: user.id },
         title,
         body,
         data,
       });
 
       await this.notificationRepo.save(notificationRecord);
-
       const response = await this.firebaseMessaging.send(message);
       console.log(`Successfully sent ${type} notification:`, response);
     } catch (error) {

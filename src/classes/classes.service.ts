@@ -21,9 +21,15 @@ import {
 import { ClassInstance } from './entities/class-instance.entity';
 import { CoursesService } from '../courses/courses.service';
 import { PostgresErrorCode } from '../database/postgres-errorcodes.enum';
-import { ClassFrequency, ClassStatus } from '../constants/enums';
+import {
+  ClassFrequency,
+  ClassStatus,
+  NotificationType,
+} from '../constants/enums';
 import { set, isPast } from 'date-fns';
 import { WsException } from '@nestjs/websockets';
+import { NotificationsService } from 'src/notifications/notifications.service';
+import { StudentCourseEnrollment } from 'src/courses/entities/student-course-enrollment.entity';
 
 @Injectable()
 export class ClassesService {
@@ -35,6 +41,7 @@ export class ClassesService {
     @Inject(forwardRef(() => CoursesService))
     private readonly coursesService: CoursesService,
     private dataSource: DataSource,
+    private readonly notificationService: NotificationsService,
   ) {}
 
   async create(createClassDto: CreateCourseClassDto) {
@@ -249,10 +256,40 @@ export class ClassesService {
   async startClass(classInstanceId: string) {
     const classInstance = await this.findOneClassInstanceById(classInstanceId);
     if (classInstance.status === ClassStatus.Held) {
-      throw new ConflictException("Class has already been held");
+      throw new ConflictException('Class has already been held');
     }
     classInstance.status = ClassStatus.OnGoinging;
-    return await this.classInstanceRepository.save(classInstance);
+    await this.classInstanceRepository.save(classInstance);
+    const students = await this.coursesService.fetchStudentEnrollments(
+      {
+        courseId: classInstance.base.course.id,
+      },
+      ['user.fcm_token'],
+    );
+    await this.sendClassStartedNotification(classInstance, students);
+    return classInstance;
+  }
+
+  private sendClassStartedNotification(
+    classInstance: ClassInstance,
+    students: StudentCourseEnrollment[],
+  ) {
+    students.forEach(async (studentEnrollment) => {
+      try {
+        await this.notificationService.sendNotification({
+          type: NotificationType.ClassStarted,
+          user: studentEnrollment.student.user,
+          title: 'Class Started',
+          body: `${classInstance.base.course.course_code} class has started`,
+          data: {
+            message: 'Class Started',
+            class_instance_id: classInstance.id,
+          },
+        });
+      } catch (err) {
+        console.log('Error Occured');
+      }
+    });
   }
 
   /// creates the class instance but does not save to the DB
