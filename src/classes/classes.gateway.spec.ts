@@ -1,12 +1,15 @@
-import { buildClassInstanceMock, buildStartClassDtoMock } from '../test/course-class.factory';
+import '../test/mocks/firebase.mock';
+import {
+  buildClassInstanceMock,
+  buildStartClassDtoMock,
+} from '../test/course-class.factory';
 import { ClassesGateway } from './classes.gateway';
 import { ClassesService } from './classes.service';
 import { TestBed } from '@automock/jest';
 
 describe('ClassesGateway', () => {
   let gateway: ClassesGateway;
-   let classesService: ClassesService;
-
+  let classesService: ClassesService;
 
   beforeEach(async () => {
     const { unit, unitRef } = TestBed.create(ClassesGateway).compile();

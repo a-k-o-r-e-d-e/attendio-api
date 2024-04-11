@@ -1,3 +1,4 @@
+import '../test/mocks/firebase.mock';
 import { Test, TestingModule } from '@nestjs/testing';
 import { CoursesService } from './courses.service';
 import { Course } from './entities/course.entity';
@@ -19,6 +20,7 @@ import { PostgresErrorCode } from '../database/postgres-errorcodes.enum';
 import { ClassesService } from '../classes/classes.service';
 import { buildCourseClassMock } from '../test/course-class.factory';
 import { TypeOrmUtils } from '../database/typeorm-utils';
+import '../test/mocks/firebase.mock';
 
 describe('CoursesService', () => {
   let service: CoursesService;
@@ -28,7 +30,10 @@ describe('CoursesService', () => {
   let studentService: StudentsService;
   let classesService: ClassesService;
 
-  const mockCourses = [buildCourseMock({created_at: new Date('2025-11-03')}), buildCourseMock()];
+  const mockCourses = [
+    buildCourseMock({ created_at: new Date('2025-11-03') }),
+    buildCourseMock(),
+  ];
   const rawResults = [
     { ...mockCourses[0], is_student_enrolled: true },
     { ...mockCourses[1], is_student_enrolled: false },
@@ -126,8 +131,10 @@ describe('CoursesService', () => {
       jest
         .spyOn(courseRepository, 'createQueryBuilder')
         .mockReturnValue(queryBuilderMock as any);
-      
-        jest.spyOn(TypeOrmUtils, 'attachVirtualColumns').mockReturnValue(rawResults);
+
+      jest
+        .spyOn(TypeOrmUtils, 'attachVirtualColumns')
+        .mockReturnValue(rawResults);
 
       const result = await service.findAll(user);
 
@@ -135,7 +142,7 @@ describe('CoursesService', () => {
       expect(queryBuilderMock.setFindOptions).toHaveBeenCalledWith({
         where: {
           institution: { id: user.institution.id },
-        }
+        },
       });
     });
 
@@ -158,10 +165,10 @@ describe('CoursesService', () => {
 
       expect(result).toBe(mockCourses);
       expect(queryBuilderMock.setFindOptions).toHaveBeenCalledWith({
-        where:{
+        where: {
           ...whereClause,
-        institution: { id: user.institution.id },
-        }
+          institution: { id: user.institution.id },
+        },
       });
     });
   });
@@ -239,7 +246,6 @@ describe('CoursesService', () => {
       const result = await service.search(searchText, user);
 
       const searchTextLower = searchText.toLowerCase();
-
 
       expect(result).toEqual(rawResults);
       // Validating it was called with ILike helps validate that the function is case-insensitive

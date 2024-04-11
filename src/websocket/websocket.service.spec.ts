@@ -1,3 +1,4 @@
+import '../test/mocks/firebase.mock';
 import { TestBed } from '@automock/jest';
 import { WebsocketService } from './websocket.service';
 import { AuthService } from '../auth/auth.service';

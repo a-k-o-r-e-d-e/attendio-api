@@ -1,3 +1,4 @@
+import '../test/mocks/firebase.mock';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
 import { LecturersService } from '../lecturers/lecturers.service';
@@ -38,7 +39,7 @@ describe('AuthService', () => {
           provide: UsersService,
           useValue: {
             getByUsernameOrEmail: jest.fn(),
-            updateFcmToken: jest.fn()
+            updateFcmToken: jest.fn(),
           },
         },
         {

@@ -1,3 +1,4 @@
+import '../test/mocks/firebase.mock';
 import { Test, TestingModule } from '@nestjs/testing';
 import { StudentsController } from './students.controller';
 import { StudentsService } from './students.service';

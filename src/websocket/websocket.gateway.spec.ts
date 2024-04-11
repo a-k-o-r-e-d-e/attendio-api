@@ -1,4 +1,4 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import '../test/mocks/firebase.mock';
 import { BaseWSGateway } from './websocket.gateway';
 import { WebsocketService } from './websocket.service';
 import { TestBed } from '@automock/jest';
@@ -12,7 +12,7 @@ describe('WebsocketGateway', () => {
     const { unit, unitRef } = TestBed.create(BaseWSGateway).compile();
 
     gateway = unit;
-    websocketService = unitRef.get(WebsocketService)
+    websocketService = unitRef.get(WebsocketService);
   });
 
   it('should be defined', () => {

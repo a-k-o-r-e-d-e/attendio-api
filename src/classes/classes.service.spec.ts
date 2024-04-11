@@ -1,7 +1,7 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import '../test/mocks/firebase.mock';
 import { ClassesService } from './classes.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { DataSource, EntityManager, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { CourseClass } from './entities/course-class.entity';
 import { ClassInstance } from './entities/class-instance.entity';
 import { CoursesService } from '../courses/courses.service';

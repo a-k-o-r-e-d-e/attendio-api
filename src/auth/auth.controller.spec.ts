@@ -1,3 +1,4 @@
+import '../test/mocks/firebase.mock';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
@@ -10,7 +11,10 @@ import { buildUserMock } from '../test/user.factory';
 import { Role } from '../constants/enums';
 import { buildLoginDTOMock } from '../test/auth.factory';
 import { buildInstitutionMock } from '../test/institution.factory';
-import { buildCreateStudentDtoMock, buildStudentMock } from '../test/student.factory';
+import {
+  buildCreateStudentDtoMock,
+  buildStudentMock,
+} from '../test/student.factory';
 
 describe('AuthController', () => {
   let controller: AuthController;
@@ -116,11 +120,11 @@ describe('AuthController', () => {
   describe('login', () => {
     it('should call authService.login with the user and userType from request', async () => {
       const loginDto = buildLoginDTOMock({
-          emailOrUsername: 'test@example.com',
-          password: 'password',
-          user_type: Role.Lecturer,
-          fcm_token: 'random-token'
-        });
+        emailOrUsername: 'test@example.com',
+        password: 'password',
+        user_type: Role.Lecturer,
+        fcm_token: 'random-token',
+      });
       const request = {
         user: buildUserMock(),
       };
@@ -130,7 +134,7 @@ describe('AuthController', () => {
       expect(authService.login).toHaveBeenCalledWith(
         request.user,
         Role.Lecturer,
-        loginDto.fcm_token
+        loginDto.fcm_token,
       );
     });
 
@@ -151,7 +155,7 @@ describe('AuthController', () => {
       expect(authService.login).toHaveBeenCalledWith(
         request.user,
         loginDto.user_type,
-        loginDto.fcm_token
+        loginDto.fcm_token,
       );
       expect(result).toEqual({ access_token: accessToken, profile: lecturer });
     });
@@ -161,20 +165,26 @@ describe('AuthController', () => {
     it('should authenticate user', async () => {
       const student = buildStudentMock();
       const req = {
-        user: student
+        user: student,
       } as any;
-      const sample_token = 'sample_token'
-      
+      const sample_token = 'sample_token';
+
       const loginResult = {
         access_token: 'mockAccessToken',
         profile: student,
       };
       jest.spyOn(authService, 'login').mockResolvedValueOnce(loginResult);
 
-      const result = await controller.authenticate(req, {fcm_token: sample_token});
+      const result = await controller.authenticate(req, {
+        fcm_token: sample_token,
+      });
 
       expect(result).toBe(loginResult);
-      expect(authService.login).toHaveBeenCalledWith(req.user.user, Role.Student, sample_token);
+      expect(authService.login).toHaveBeenCalledWith(
+        req.user.user,
+        Role.Student,
+        sample_token,
+      );
     });
   });
 });

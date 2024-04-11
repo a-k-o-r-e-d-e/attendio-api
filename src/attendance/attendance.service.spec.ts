@@ -1,3 +1,4 @@
+import '../test/mocks/firebase.mock';
 import { TestBed } from '@automock/jest';
 import { AttendanceService } from './attendance.service';
 import { Repository } from 'typeorm';
