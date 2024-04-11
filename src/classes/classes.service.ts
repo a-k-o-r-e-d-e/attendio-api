@@ -22,7 +22,8 @@ import { ClassInstance } from './entities/class-instance.entity';
 import { CoursesService } from '../courses/courses.service';
 import { PostgresErrorCode } from '../database/postgres-errorcodes.enum';
 import { ClassFrequency, ClassStatus } from '../constants/enums';
-import { set, isPast} from 'date-fns';
+import { set, isPast } from 'date-fns';
+import { WsException } from '@nestjs/websockets';
 
 @Injectable()
 export class ClassesService {
@@ -102,6 +103,26 @@ export class ClassesService {
     });
   }
 
+  async findOneClassInstance(
+    whereClause?: FindOptionsWhere<ClassInstance>,
+  ): Promise<ClassInstance> {
+    const classInstance =
+      await this.classInstanceRepository.findOneBy(whereClause);
+    if (!classInstance) {
+      throw new NotFoundException('Class Instance does not exist!');
+    }
+
+    return classInstance;
+  }
+
+  async findOneClassInstanceById(
+    classInstanceId: string,
+  ): Promise<ClassInstance> {
+    return await this.findOneClassInstance({
+      id: classInstanceId,
+    });
+  }
+
   async update(id: string, updateClassDto: UpdateCourseClassDto) {
     const courseClass = await this.findOneCourseClassById(id);
 
@@ -113,8 +134,10 @@ export class ClassesService {
     let updatedCourseClass: CourseClass;
 
     await this.dataSource.transaction(async (transactionManager) => {
-      updatedCourseClass =
-        await transactionManager.save<CourseClass, any>(CourseClass, courseClassUpdate);
+      updatedCourseClass = await transactionManager.save<CourseClass, any>(
+        CourseClass,
+        courseClassUpdate,
+      );
 
       // update any pending class instance.
       const pendingInstances = await this.classInstanceRepository.findBy({
@@ -123,7 +146,7 @@ export class ClassesService {
       });
 
       const updatedClassInstances = pendingInstances.map((classInstance) => {
-        const today = new Date ();
+        const today = new Date();
         let currentWeekDate = updatedCourseClass.start_date;
 
         if (isPast(updatedCourseClass.start_date)) {
@@ -131,11 +154,8 @@ export class ClassesService {
             updatedCourseClass.start_date,
             today,
           );
-          currentWeekDate = addWeeks(
-            updatedCourseClass.start_date,
-            weeksPast,
-          );
-        }        
+          currentWeekDate = addWeeks(updatedCourseClass.start_date, weeksPast);
+        }
 
         const { start_time, end_time } =
           this.computeClassInstanceStartAndEndTime(
@@ -152,7 +172,10 @@ export class ClassesService {
         return classInstance;
       });
 
-      await transactionManager.save<ClassInstance, any>(ClassInstance, updatedClassInstances);
+      await transactionManager.save<ClassInstance, any>(
+        ClassInstance,
+        updatedClassInstances,
+      );
     });
 
     return updatedCourseClass;
@@ -221,6 +244,15 @@ export class ClassesService {
     } catch (err) {
       console.log('Error :: ', err);
     }
+  }
+
+  async startClass(classInstanceId: string) {
+    const classInstance = await this.findOneClassInstanceById(classInstanceId);
+    if (classInstance.status === ClassStatus.Held) {
+      throw new ConflictException("Class has already been held");
+    }
+    classInstance.status = ClassStatus.OnGoinging;
+    return await this.classInstanceRepository.save(classInstance);
   }
 
   /// creates the class instance but does not save to the DB

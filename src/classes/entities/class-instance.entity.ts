@@ -1,4 +1,4 @@
-import { IsDate, IsEnum } from 'class-validator';
+import { IsDate, IsDateString, IsEnum } from 'class-validator';
 import { Column, Entity, ManyToOne, Unique } from 'typeorm';
 import { CourseClass } from './course-class.entity';
 import { ClassStatus } from '../../constants/enums';
@@ -12,18 +12,16 @@ export class ClassInstance extends CustomBaseEntity {
   status: ClassStatus;
 
   @Column({ type: 'date' })
-  @IsDate()
+  @IsDateString()
   date: Date;
 
   @Column()
   public baseId: string;
 
   @Column()
-  @IsDate()
   start_time: Date;
 
   @Column()
-  @IsDate()
   end_time: Date;
 
   @ManyToOne(() => CourseClass, (base) => base.instances, {
