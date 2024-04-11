@@ -47,5 +47,6 @@ export class User extends CustomBaseEntity {
   @Column({ nullable: true, unique: true, select: false })
   @IsOptional()
   @IsNotEmpty()
+  @Exclude()
   fcm_token?: string;
 }
