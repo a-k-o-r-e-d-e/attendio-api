@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { AttendanceService } from './attendance.service';
 import { ClassesModule } from 'src/classes/classes.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -7,8 +7,12 @@ import { CoursesModule } from 'src/courses/courses.module';
 import { AttendanceGateway } from './attendance.gateway';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Attendance]), ClassesModule, CoursesModule],
+  imports: [
+    TypeOrmModule.forFeature([Attendance]),
+    forwardRef(() => ClassesModule),
+    forwardRef(() => CoursesModule),
+  ],
   providers: [AttendanceService, AttendanceGateway],
-  exports: [AttendanceService]
+  exports: [AttendanceService],
 })
 export class AttendanceModule {}

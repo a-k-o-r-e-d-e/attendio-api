@@ -27,9 +27,9 @@ import {
   NotificationType,
 } from '../constants/enums';
 import { set, isPast } from 'date-fns';
-import { WsException } from '@nestjs/websockets';
 import { NotificationsService } from 'src/notifications/notifications.service';
 import { StudentCourseEnrollment } from 'src/courses/entities/student-course-enrollment.entity';
+import { AttendanceService } from 'src/attendance/attendance.service';
 
 @Injectable()
 export class ClassesService {
@@ -42,6 +42,8 @@ export class ClassesService {
     private readonly coursesService: CoursesService,
     private dataSource: DataSource,
     private readonly notificationService: NotificationsService,
+    @Inject(forwardRef(() => AttendanceService))
+    private readonly attendanceService: AttendanceService,
   ) {}
 
   async create(createClassDto: CreateCourseClassDto) {
@@ -266,7 +268,12 @@ export class ClassesService {
       },
       ['user.fcm_token'],
     );
+
+    // Send Notifications to Students
     await this.sendClassStartedNotification(classInstance, students);
+
+    // Populate Attendance Records
+    await this.attendanceService.populateAttendanceRecords(classInstance, students);
     return classInstance;
   }
 

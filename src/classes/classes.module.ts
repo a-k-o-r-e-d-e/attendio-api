@@ -9,6 +9,7 @@ import { ClassesGateway } from './classes.gateway';
 import { AuthModule } from 'src/auth/auth.module';
 import { WebsocketModule } from 'src/websocket/websocket.module';
 import { NotificationsModule } from 'src/notifications/notifications.module';
+import { AttendanceModule } from 'src/attendance/attendance.module';
 
 @Module({
   imports: [
@@ -16,7 +17,8 @@ import { NotificationsModule } from 'src/notifications/notifications.module';
     forwardRef(() => CoursesModule),
     forwardRef(() => AuthModule),
     WebsocketModule,
-    NotificationsModule
+    NotificationsModule,
+    forwardRef(() => AttendanceModule),
   ],
   controllers: [ClassesController],
   providers: [ClassesService, ClassesGateway],
