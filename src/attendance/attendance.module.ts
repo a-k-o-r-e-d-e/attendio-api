@@ -4,7 +4,6 @@ import { ClassesModule } from '../classes/classes.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Attendance } from './entities/attendance.entity';
 import { CoursesModule } from '../courses/courses.module';
-import { AttendanceGateway } from './attendance.gateway';
 
 @Module({
   imports: [
@@ -12,7 +11,7 @@ import { AttendanceGateway } from './attendance.gateway';
     forwardRef(() => ClassesModule),
     forwardRef(() => CoursesModule),
   ],
-  providers: [AttendanceService, AttendanceGateway],
+  providers: [AttendanceService],
   exports: [AttendanceService],
 })
 export class AttendanceModule {}

@@ -9,52 +9,32 @@ import {
   buildClassInstanceMock,
   buildCourseClassMock,
 } from '../test/course-class.factory';
-import { NotFoundException } from '@nestjs/common';
+import { ConflictException, NotFoundException } from '@nestjs/common';
+import { TestBed } from '@automock/jest';
+import { ClassStatus } from '../constants/enums';
+import { buildStudentCourseEnrollmentMock } from '../test/course.factory';
+import { NotificationsService } from '../notifications/notifications.service';
+import { AttendanceService } from '../attendance/attendance.service';
 
 describe('ClassesService', () => {
   let service: ClassesService;
   let courseClassRepo: Repository<CourseClass>;
   let classInstanceRepo: Repository<ClassInstance>;
+  let coursesService: CoursesService;
+  let notificationsService: NotificationsService;
+  let attendanceService: AttendanceService;
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        ClassesService,
-        {
-          provide: getRepositoryToken(CourseClass),
-          useClass: Repository,
-        },
-        {
-          provide: getRepositoryToken(ClassInstance),
-          useClass: Repository,
-        },
-        {
-          provide: CoursesService,
-          useValue: {
-            findOneById: jest.fn(),
-          },
-        },
+    const { unit, unitRef } = TestBed.create(ClassesService).compile();
 
-        {
-          provide: DataSource,
-          useValue: {},
-        },
-        {
-          provide: EntityManager,
-          useValue: {
-            save: jest.fn(),
-          },
-        },
-      ],
-    }).compile();
-
-    service = module.get<ClassesService>(ClassesService);
-    courseClassRepo = module.get<Repository<CourseClass>>(
-      getRepositoryToken(CourseClass),
+    service = unit;
+    courseClassRepo = unitRef.get(getRepositoryToken(CourseClass) as string);
+    classInstanceRepo = unitRef.get(
+      getRepositoryToken(ClassInstance) as string,
     );
-    classInstanceRepo = module.get<Repository<ClassInstance>>(
-      getRepositoryToken(ClassInstance),
-    );
+    coursesService = unitRef.get(CoursesService);
+    notificationsService = unitRef.get(NotificationsService);
+    attendanceService = unitRef.get(AttendanceService);
   });
 
   afterEach(() => {
@@ -225,6 +205,51 @@ describe('ClassesService', () => {
 
       await expect(service.remove(courseClassId)).rejects.toThrow(
         NotFoundException,
+      );
+    });
+  });
+
+  describe('startClass', () => {
+    it('should start class and send notifications to students', async () => {
+      // Arrange
+      const classInstance = buildClassInstanceMock({
+        status: ClassStatus.Pending,
+      });
+
+      const students = [buildStudentCourseEnrollmentMock()];
+
+      jest
+        .spyOn(service, 'findOneClassInstanceById')
+        .mockResolvedValue(classInstance);
+      jest
+        .spyOn(coursesService, 'fetchStudentEnrollments')
+        .mockResolvedValue(students);
+
+      // Act
+      await service.startClass('classInstanceId');
+
+      // Assert
+      expect(classInstance.status).toEqual(ClassStatus.OnGoinging);
+      expect(coursesService.fetchStudentEnrollments).toHaveBeenCalledWith(
+        { courseId: classInstance.base.course.id },
+        ['user.fcm_token'],
+      );
+      expect(notificationsService.sendNotification).toHaveBeenCalled();
+      expect(attendanceService.populateAttendanceRecords).toHaveBeenCalled();
+    });
+
+    it('should throw ConflictException if class status is Held', async () => {
+      // Arrange
+      const classInstance = new ClassInstance();
+      classInstance.status = ClassStatus.Held;
+
+      jest
+        .spyOn(service, 'findOneClassInstanceById')
+        .mockResolvedValue(classInstance);
+
+      // Act & Assert
+      await expect(service.startClass('classInstanceId')).rejects.toThrow(
+        ConflictException,
       );
     });
   });

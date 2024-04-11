@@ -27,9 +27,9 @@ import {
   NotificationType,
 } from '../constants/enums';
 import { set, isPast } from 'date-fns';
-import { NotificationsService } from 'src/notifications/notifications.service';
-import { StudentCourseEnrollment } from 'src/courses/entities/student-course-enrollment.entity';
-import { AttendanceService } from 'src/attendance/attendance.service';
+import { NotificationsService } from '../notifications/notifications.service';
+import { StudentCourseEnrollment } from '../courses/entities/student-course-enrollment.entity';
+import { AttendanceService } from '../attendance/attendance.service';
 
 @Injectable()
 export class ClassesService {
