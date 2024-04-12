@@ -38,13 +38,11 @@ export class CourseClass extends CustomBaseEntity {
   end_time: string;
 
   @Column({ type: 'date' })
-  @IsDate()
-  @MinDate(new Date())
+  // @MinDate(new Date())
   start_date: Date;
 
   @Column({ type: 'date' })
-  @IsDate()
-  @MinDate(new Date())
+  // @MinDate(new Date())
   end_date: Date;
 
   @Column({ nullable: true })

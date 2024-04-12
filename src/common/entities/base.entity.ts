@@ -12,11 +12,9 @@ export abstract class CustomBaseEntity {
   id: string;
 
   @CreateDateColumn({ select: false })
-  @IsDate()
   created_at: Date;
 
   @UpdateDateColumn({ select: false })
-  @IsDate()
   updated_at: Date;
 
   // HOOKS
