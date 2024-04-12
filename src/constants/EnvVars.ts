@@ -18,7 +18,7 @@ export default {
   JWT_EXPIRATION_TIME: process.env.JWT_EXPIRATION_TIME ?? '8h',
   FIREBASE_CONFIG: {
     project_id: process.env.FIREBASE_PROJECT_ID,
-    private_key: JSON.parse(process.env.FIREBASE_PRIVATE_KEY).replace(
+    private_key: JSON.parse(process.env.FIREBASE_PRIVATE_KEY ?? '"just_to_pass_testing"').replace(
       /\\n/g,
       '\n',
     ),
