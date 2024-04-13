@@ -30,6 +30,7 @@ import { set, isPast } from 'date-fns';
 import { NotificationsService } from '../notifications/notifications.service';
 import { StudentCourseEnrollment } from '../courses/entities/student-course-enrollment.entity';
 import { AttendanceService } from '../attendance/attendance.service';
+import { Socket } from 'socket.io';
 
 @Injectable()
 export class ClassesService {
@@ -255,7 +256,7 @@ export class ClassesService {
     }
   }
 
-  async startClass(classInstanceId: string) {
+  async startClass(classInstanceId: string, socket: Socket) {
     const classInstance = await this.findOneClassInstanceById(classInstanceId);
     if (classInstance.status === ClassStatus.Held) {
       throw new ConflictException('Class has already been held');
@@ -274,6 +275,12 @@ export class ClassesService {
 
     // Populate Attendance Records
     await this.attendanceService.populateAttendanceRecords(classInstance, students);
+
+    // create class rooms and add lecturers
+    let classRoomId = `ongoing-class-${classInstance.id}`;
+    let classLecturerRoomId = `ongoing-class-lecturer-${classInstance.base.course.lecturer.id}`;
+    socket.join([classRoomId, classLecturerRoomId]);
+
     return classInstance;
   }
 

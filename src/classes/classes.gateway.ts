@@ -13,6 +13,7 @@ import { WebsocketService } from '../websocket/websocket.service';
 import { ClassesService } from './classes.service';
 import { StartClassDto } from './dto/start-class.dto';
 import { HttpExceptionTransformationFilter } from '../websocket/filters/ws-exception.filter';
+import { Socket } from 'socket.io';
 
 @WebSocketGateway()
 @UseInterceptors(ClassSerializerInterceptor)
@@ -29,9 +30,12 @@ export class ClassesGateway extends BaseWSGateway {
   @UseGuards(WsJwtGuard, RolesGuard)
   @UsePipes(new ValidationPipe())
   @SubscribeMessage('start-class')
-  async handleStartClass(@MessageBody() startClassDto: StartClassDto) {
+  async handleStartClass(
+    socket: Socket,
+    @MessageBody() startClassDto: StartClassDto) {
     return await this.classesService.startClass(
       startClassDto.class_instance_id,
+      socket
     );
   }
 }
