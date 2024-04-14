@@ -8,6 +8,7 @@ import { CoursesService } from '../courses/courses.service';
 import {
   buildClassInstanceMock,
   buildCourseClassMock,
+  buildOnGoingClassMock,
 } from '../test/course-class.factory';
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { TestBed } from '@automock/jest';
@@ -15,6 +16,8 @@ import { ClassStatus } from '../constants/enums';
 import { buildStudentCourseEnrollmentMock } from '../test/course.factory';
 import { NotificationsService } from '../notifications/notifications.service';
 import { AttendanceService } from '../attendance/attendance.service';
+import { Socket } from 'socket.io';
+import { OnGoingingClassInstance } from './entities/ongoing-class-instance.entity';
 
 describe('ClassesService', () => {
   let service: ClassesService;
@@ -23,6 +26,7 @@ describe('ClassesService', () => {
   let coursesService: CoursesService;
   let notificationsService: NotificationsService;
   let attendanceService: AttendanceService;
+  let onGoingClassRepo: Repository<OnGoingingClassInstance>;
 
   beforeEach(async () => {
     const { unit, unitRef } = TestBed.create(ClassesService).compile();
@@ -35,6 +39,7 @@ describe('ClassesService', () => {
     coursesService = unitRef.get(CoursesService);
     notificationsService = unitRef.get(NotificationsService);
     attendanceService = unitRef.get(AttendanceService);
+    onGoingClassRepo = unitRef.get(getRepositoryToken(OnGoingingClassInstance) as string);
   });
 
   afterEach(() => {
@@ -216,17 +221,26 @@ describe('ClassesService', () => {
         status: ClassStatus.Pending,
       });
 
+      const ongoingClassInstance = buildOnGoingClassMock();
+
       const students = [buildStudentCourseEnrollmentMock()];
+
+      const socket: Socket = {
+        join: jest.fn(),
+      } as any;
 
       jest
         .spyOn(service, 'findOneClassInstanceById')
         .mockResolvedValue(classInstance);
+
+        jest.spyOn(onGoingClassRepo, 'findOneBy').mockResolvedValue(ongoingClassInstance);
       jest
         .spyOn(coursesService, 'fetchStudentEnrollments')
         .mockResolvedValue(students);
+        jest.spyOn(socket, 'join').mockResolvedValue(undefined).mockReturnValue(undefined);
 
       // Act
-      await service.startClass('classInstanceId');
+      await service.startClass('classInstanceId', socket);
 
       // Assert
       expect(classInstance.status).toEqual(ClassStatus.OnGoinging);
@@ -243,12 +257,21 @@ describe('ClassesService', () => {
       const classInstance = new ClassInstance();
       classInstance.status = ClassStatus.Held;
 
+      const socket: Socket = {
+        join: jest.fn(),
+      } as any;
+
+      jest
+        .spyOn(socket, 'join')
+        .mockResolvedValue(undefined)
+        .mockReturnValue(undefined);
+
       jest
         .spyOn(service, 'findOneClassInstanceById')
         .mockResolvedValue(classInstance);
 
       // Act & Assert
-      await expect(service.startClass('classInstanceId')).rejects.toThrow(
+      await expect(service.startClass('classInstanceId', socket)).rejects.toThrow(
         ConflictException,
       );
     });

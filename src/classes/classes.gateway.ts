@@ -22,7 +22,7 @@ import { ClassesService } from './classes.service';
 import { StartClassDto } from './dto/start-class.dto';
 import { HttpExceptionTransformationFilter } from '../websocket/filters/ws-exception.filter';
 import { Socket } from 'socket.io';
-import WsEvents from 'src/constants/websocket-events';
+import WsEvents from '../constants/websocket-events';
 
 @WebSocketGateway()
 @UseInterceptors(ClassSerializerInterceptor)

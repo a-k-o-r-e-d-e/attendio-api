@@ -32,9 +32,9 @@ import { StudentCourseEnrollment } from '../courses/entities/student-course-enro
 import { AttendanceService } from '../attendance/attendance.service';
 import { Socket } from 'socket.io';
 import { OnGoingingClassInstance } from './entities/ongoing-class-instance.entity';
-import { Student } from 'src/students/entities/student.entity';
+import { Student } from '../students/entities/student.entity';
 import { WsException } from '@nestjs/websockets';
-import WsEvents from 'src/constants/websocket-events';
+import WsEvents from '../constants/websocket-events';
 
 @Injectable()
 export class ClassesService {
@@ -293,7 +293,7 @@ export class ClassesService {
 
     // create class rooms and add lecturers
     let { lecturerRoom, mainRoom } = this.getClassSocketRoom(classInstance);
-    socket.join([mainRoom, lecturerRoom]);
+    await socket.join([mainRoom, lecturerRoom]);
 
     return onGoingClass;
   }

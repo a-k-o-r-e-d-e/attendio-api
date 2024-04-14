@@ -1,7 +1,7 @@
-import { CustomBaseEntity } from "src/common/entities/base.entity";
+import { CustomBaseEntity } from "../../common/entities/base.entity";
 import { Column, Entity, JoinColumn, JoinTable, ManyToMany, OneToOne } from "typeorm";
 import { ClassInstance } from "./class-instance.entity";
-import { StudentCourseEnrollment } from "src/courses/entities/student-course-enrollment.entity";
+import { StudentCourseEnrollment } from "../../courses/entities/student-course-enrollment.entity";
 
 @Entity()
 export class OnGoingingClassInstance extends CustomBaseEntity {

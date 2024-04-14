@@ -5,6 +5,7 @@ import { ClassInstance } from '../classes/entities/class-instance.entity';
 import { CourseClass } from '../classes/entities/course-class.entity';
 import { ClassFrequency, ClassMode, ClassStatus } from '../constants/enums';
 import { buildCourseMock } from './course.factory';
+import { OnGoingingClassInstance } from '../classes/entities/ongoing-class-instance.entity';
 
 export function buildCourseClassMock(
   partial?: Partial<CourseClass>,
@@ -74,9 +75,28 @@ export function buildUpdateCourseClassDtoMock(
   };
 }
 
-export function buildStartClassDtoMock(partial?: Partial<StartClassDto>): StartClassDto {
+export function buildStartClassDtoMock(
+  partial?: Partial<StartClassDto>,
+): StartClassDto {
   return {
     class_instance_id: 'class_instance_id',
     ...partial,
+  };
+}
+
+export function buildOnGoingClassMock(
+  partial?: Partial<OnGoingingClassInstance>,
+): OnGoingingClassInstance {
+  return {
+    id: 'ongoing-class-id',
+    present_enrolled_students: [],
+    currently_taking_attendance: false,
+    count_of_enrolled_students: 12,
+    created_at: new Date(),
+    updated_at: new Date(),
+    ...partial,
+    class_instance: {
+      ...buildClassInstanceMock(partial?.class_instance),
+    },
   };
 }

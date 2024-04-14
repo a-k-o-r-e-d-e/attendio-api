@@ -1,11 +1,12 @@
 import '../test/mocks/firebase.mock';
 import {
-  buildClassInstanceMock,
+  buildOnGoingClassMock,
   buildStartClassDtoMock,
 } from '../test/course-class.factory';
 import { ClassesGateway } from './classes.gateway';
 import { ClassesService } from './classes.service';
 import { TestBed } from '@automock/jest';
+import { Socket } from 'socket.io';
 
 describe('ClassesGateway', () => {
   let gateway: ClassesGateway;
@@ -26,18 +27,23 @@ describe('ClassesGateway', () => {
     it('should start class with provided class instance id', async () => {
       // Arrange
       const startClassDto = buildStartClassDtoMock();
-      const expectedResponse = buildClassInstanceMock();
+      const expectedResponse = buildOnGoingClassMock();
       jest
         .spyOn(classesService, 'startClass')
         .mockResolvedValue(expectedResponse);
 
+      const socket: Socket = {
+        join: jest.fn(),
+      } as any;
+
       // Act
-      const result = await gateway.handleStartClass(startClassDto);
+      const result = await gateway.handleStartClass(socket, startClassDto);
 
       // Assert
       expect(result).toEqual(expectedResponse);
       expect(classesService.startClass).toHaveBeenCalledWith(
         startClassDto.class_instance_id,
+        socket
       );
     });
   });
