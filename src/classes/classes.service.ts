@@ -32,6 +32,9 @@ import { StudentCourseEnrollment } from '../courses/entities/student-course-enro
 import { AttendanceService } from '../attendance/attendance.service';
 import { Socket } from 'socket.io';
 import { OnGoingingClassInstance } from './entities/ongoing-class-instance.entity';
+import { Student } from 'src/students/entities/student.entity';
+import { WsException } from '@nestjs/websockets';
+import WsEvents from 'src/constants/websocket-events';
 
 @Injectable()
 export class ClassesService {
@@ -280,30 +283,61 @@ export class ClassesService {
     );
 
     /// Create Ongoing class record to store the class state
-    let onGoingClass = this.ongoingClassRepo.create({
-      class_instance: classInstance,
-    });
-
-    let res = await this.ongoingClassRepo.upsert(onGoingClass, {
-      conflictPaths: { class_instance: true },
-    });
-
-    onGoingClass = await this.ongoingClassRepo.findOneBy({
-      class_instance: { id: classInstance.id },
-    });
-    onGoingClass.count_of_enrolled_students = students.length;
-    onGoingClass.present_enrolled_students =
-      onGoingClass.present_enrolled_students ?? [];
+    let onGoingClass = await this.findOrCreateOnGoingClass(
+      classInstance,
+      students,
+    );
 
     // Send Notifications to Students
     await this.sendClassStartedNotification(classInstance, students);
 
     // create class rooms and add lecturers
-    let classRoomId = `ongoing-class-${classInstance.id}`;
-    let classLecturerRoomId = `ongoing-class-lecturer-${classInstance.base.course.lecturer.id}`;
-    socket.join([classRoomId, classLecturerRoomId]);
-    
+    let { lecturerRoom, mainRoom } = this.getClassSocketRoom(classInstance);
+    socket.join([mainRoom, lecturerRoom]);
+
     return onGoingClass;
+  }
+
+  async joinClass(socket: Socket, student: Student, classInstanceId: string) {
+    // check existence of classInstance
+    const classInstance = await this.findOneClassInstanceById(classInstanceId);
+
+    // check that student is enrolled for class.
+    const studentEnrollment =
+      await this.coursesService.findOneStudentEnrollment({
+        course: { id: classInstance.base.course.id },
+        student: { id: student.id },
+      });
+
+    // check that class is ongoing
+    if (classInstance.status != ClassStatus.OnGoinging) {
+      throw new WsException('You can only join an ongoing class ');
+    }
+
+    // update ongoing class state
+    const studentEnrollments =
+      await this.coursesService.fetchStudentEnrollments({
+        courseId: classInstance.base.course.id,
+      });
+    let onGoingClass = await this.findOrCreateOnGoingClass(
+      classInstance,
+      studentEnrollments,
+    );
+    const studentAlreadyJoined = onGoingClass.present_enrolled_students.find(
+      (stu) => stu.studentId === studentEnrollment.studentId,
+    );
+    if (!studentAlreadyJoined) {
+      onGoingClass.present_enrolled_students.push(studentEnrollment);
+    }
+
+    let { lecturerRoom, mainRoom } = this.getClassSocketRoom(classInstance);
+
+    // Add student to main room.
+    socket.join([mainRoom]);
+
+    // inform lecturer of new joined student
+    // emit 'student-joined-class' event to class instance room
+    socket.to(lecturerRoom).emit(WsEvents.StudentJoinedClass, onGoingClass);
   }
 
   private sendClassStartedNotification(
@@ -326,6 +360,13 @@ export class ClassesService {
         console.log('Error Occured');
       }
     });
+  }
+
+  private getClassSocketRoom(classInstance: ClassInstance) {
+    return {
+      lecturerRoom: `ongoing-class-lecturer-${classInstance.base.course.lecturer.id}`,
+      mainRoom: `ongoing-class-${classInstance.id}`,
+    };
   }
 
   /// creates the class instance but does not save to the DB
@@ -361,5 +402,34 @@ export class ClassesService {
     });
 
     return { start_time, end_time };
+  }
+
+  private async findOrCreateOnGoingClass(
+    classInstance: ClassInstance,
+    enrolledStudents: StudentCourseEnrollment[],
+  ) {
+    let onGoingClass = await this.ongoingClassRepo.findOneBy({
+      class_instance: { id: classInstance.id },
+    });
+
+    if (!onGoingClass) {
+      onGoingClass = this.ongoingClassRepo.create({
+        class_instance: classInstance,
+      });
+
+      await this.ongoingClassRepo.upsert(onGoingClass, {
+        conflictPaths: { class_instance: true },
+      });
+
+      onGoingClass = await this.ongoingClassRepo.findOneBy({
+        class_instance: { id: classInstance.id },
+      });
+    }
+
+    onGoingClass.count_of_enrolled_students = enrolledStudents.length;
+    onGoingClass.present_enrolled_students =
+      onGoingClass.present_enrolled_students ?? [];
+
+    return onGoingClass;
   }
 }
