@@ -23,6 +23,7 @@ export abstract class CustomBaseEntity {
   async validateEntity?() {
     await validateOrReject(this, {
       skipMissingProperties: true,
+      forbidUnknownValues: false
     });
   }
 }

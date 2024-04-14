@@ -1,5 +1,6 @@
 import { ClassSerializerInterceptor, UseFilters, UseGuards, UseInterceptors, UsePipes, ValidationPipe } from '@nestjs/common';
 import {
+  ConnectedSocket,
   MessageBody,
   SubscribeMessage,
   WebSocketGateway,
@@ -31,11 +32,12 @@ export class ClassesGateway extends BaseWSGateway {
   @UsePipes(new ValidationPipe())
   @SubscribeMessage('start-class')
   async handleStartClass(
-    socket: Socket,
-    @MessageBody() startClassDto: StartClassDto) {
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() startClassDto: StartClassDto,
+  ) {
     return await this.classesService.startClass(
       startClassDto.class_instance_id,
-      socket
+      socket,
     );
   }
 }

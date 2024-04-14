@@ -31,6 +31,7 @@ import { NotificationsService } from '../notifications/notifications.service';
 import { StudentCourseEnrollment } from '../courses/entities/student-course-enrollment.entity';
 import { AttendanceService } from '../attendance/attendance.service';
 import { Socket } from 'socket.io';
+import { OnGoingingClassInstance } from './entities/ongoing-class-instance.entity';
 
 @Injectable()
 export class ClassesService {
@@ -39,6 +40,8 @@ export class ClassesService {
     private readonly courseClassRepository: Repository<CourseClass>,
     @InjectRepository(ClassInstance)
     private readonly classInstanceRepository: Repository<ClassInstance>,
+    @InjectRepository(OnGoingingClassInstance)
+    private readonly ongoingClassRepo: Repository<OnGoingingClassInstance>,
     @Inject(forwardRef(() => CoursesService))
     private readonly coursesService: CoursesService,
     private dataSource: DataSource,
@@ -270,18 +273,37 @@ export class ClassesService {
       ['user.fcm_token'],
     );
 
+    // Populate Attendance Records
+    await this.attendanceService.populateAttendanceRecords(
+      classInstance,
+      students,
+    );
+
+    /// Create Ongoing class record to store the class state
+    let onGoingClass = this.ongoingClassRepo.create({
+      class_instance: classInstance,
+    });
+
+    let res = await this.ongoingClassRepo.upsert(onGoingClass, {
+      conflictPaths: { class_instance: true },
+    });
+
+    onGoingClass = await this.ongoingClassRepo.findOneBy({
+      class_instance: { id: classInstance.id },
+    });
+    onGoingClass.count_of_enrolled_students = students.length;
+    onGoingClass.present_enrolled_students =
+      onGoingClass.present_enrolled_students ?? [];
+
     // Send Notifications to Students
     await this.sendClassStartedNotification(classInstance, students);
-
-    // Populate Attendance Records
-    await this.attendanceService.populateAttendanceRecords(classInstance, students);
 
     // create class rooms and add lecturers
     let classRoomId = `ongoing-class-${classInstance.id}`;
     let classLecturerRoomId = `ongoing-class-lecturer-${classInstance.base.course.lecturer.id}`;
     socket.join([classRoomId, classLecturerRoomId]);
-
-    return classInstance;
+    
+    return onGoingClass;
   }
 
   private sendClassStartedNotification(
