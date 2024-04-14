@@ -10,10 +10,11 @@ import { AuthModule } from '../auth/auth.module';
 import { WebsocketModule } from '../websocket/websocket.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { AttendanceModule } from '../attendance/attendance.module';
+import { OnGoingingClassInstance } from './entities/ongoing-class-instance.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([CourseClass, ClassInstance]),
+    TypeOrmModule.forFeature([CourseClass, ClassInstance, OnGoingingClassInstance]),
     forwardRef(() => CoursesModule),
     forwardRef(() => AuthModule),
     WebsocketModule,

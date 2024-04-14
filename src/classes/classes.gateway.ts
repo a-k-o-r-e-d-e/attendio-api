@@ -1,5 +1,13 @@
-import { ClassSerializerInterceptor, UseFilters, UseGuards, UseInterceptors, UsePipes, ValidationPipe } from '@nestjs/common';
 import {
+  ClassSerializerInterceptor,
+  UseFilters,
+  UseGuards,
+  UseInterceptors,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
+import {
+  ConnectedSocket,
   MessageBody,
   SubscribeMessage,
   WebSocketGateway,
@@ -13,6 +21,8 @@ import { WebsocketService } from '../websocket/websocket.service';
 import { ClassesService } from './classes.service';
 import { StartClassDto } from './dto/start-class.dto';
 import { HttpExceptionTransformationFilter } from '../websocket/filters/ws-exception.filter';
+import { Socket } from 'socket.io';
+import WsEvents from '../constants/websocket-events';
 
 @WebSocketGateway()
 @UseInterceptors(ClassSerializerInterceptor)
@@ -28,10 +38,33 @@ export class ClassesGateway extends BaseWSGateway {
   @Roles(Role.Lecturer)
   @UseGuards(WsJwtGuard, RolesGuard)
   @UsePipes(new ValidationPipe())
-  @SubscribeMessage('start-class')
-  async handleStartClass(@MessageBody() startClassDto: StartClassDto) {
+  @SubscribeMessage(WsEvents.StartClass)
+  async handleStartClass(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() startClassDto: StartClassDto,
+  ) {
     return await this.classesService.startClass(
       startClassDto.class_instance_id,
+      socket,
     );
+  }
+
+  @Roles(Role.Student)
+  @UseGuards(WsJwtGuard, RolesGuard)
+  @UsePipes(new ValidationPipe())
+  @SubscribeMessage(WsEvents.JoinClass)
+  async handleJoinClass(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() startClassDto: StartClassDto,
+  ) {
+    await this.classesService.joinClass(
+      socket,
+      (socket.request as any).user,
+      startClassDto.class_instance_id,
+    );
+
+    return {
+      message: 'Successful',
+    };
   }
 }
