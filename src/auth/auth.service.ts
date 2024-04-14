@@ -96,14 +96,11 @@ export class AuthService {
     } catch (error) {
       console.error('Error: ', error);
       if (error?.code === PostgresErrorCode.UniqueViolation) {
-        throw new BadRequestException(
-          error?.detail ?? 'Duplicate Fcm Token',
-        );
+        throw new BadRequestException(error?.detail ?? 'Duplicate Fcm Token');
       }
 
       throw error;
     }
-    
 
     const payload: JwtPayload = {
       username: user.username,
@@ -150,25 +147,21 @@ export class AuthService {
     return await bcrypt.hash(plainTextPassword, 10);
   }
 
-  private async extractUser(profile: CreateProfileDto, role: Role) {
-    return {
-      ...profile.user,
-      password: await this.hashPassword(profile.user.password),
-      roles: [role],
-    };
-  }
-
   async getProfileFromAuthToken(authToken: string) {
-    const payload: JwtPayload = this.jwtService.verify(authToken, {
-      secret: EnvVars.JWT_SECRET,
-    });
+    try {
+      const payload: JwtPayload = this.jwtService.verify(authToken, {
+        secret: EnvVars.JWT_SECRET,
+      });
 
-    const userId = payload.user_id;
+      const userId = payload.user_id;
 
-    if (userId) {
-      return this.getProfile(payload.username, payload.user_type);
+      if (userId) {
+        return this.getProfile(payload.username, payload.user_type);
+      }
+
+      return null;
+    } catch (err) {
+      throw err;
     }
-
-    return null;
   }
 }

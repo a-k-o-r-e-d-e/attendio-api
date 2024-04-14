@@ -26,6 +26,7 @@ export class WsJwtGuard implements CanActivate {
         socket.disconnect();
       }
       context.switchToHttp().getRequest().user = profile;
+      (context.switchToWs().getClient<Socket>().request as any).user = profile
       return Boolean(profile);
     } catch (err) {
       if (socket) {

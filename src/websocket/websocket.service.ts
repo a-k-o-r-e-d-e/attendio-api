@@ -10,7 +10,7 @@ export class WebsocketService {
       let auth_token = socket.handshake.headers.authorization;
       // get the token itself without "Bearer"
       auth_token = auth_token.split(' ')[1];
-      const user = this.authService.getProfileFromAuthToken(auth_token);
+      const user = await this.authService.getProfileFromAuthToken(auth_token);
 
       if (!user) {
         socket.disconnect();
