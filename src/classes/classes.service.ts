@@ -328,6 +328,7 @@ export class ClassesService {
     );
     if (!studentAlreadyJoined) {
       onGoingClass.present_enrolled_students.push(studentEnrollment);
+      await this.ongoingClassRepo.save(onGoingClass);
     }
 
     let { lecturerRoom, mainRoom } = this.getClassSocketRoom(classInstance);
