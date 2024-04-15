@@ -394,6 +394,58 @@ export class ClassesService {
     return onGoingClass;
   }
 
+  async stopTakingAttendance(
+    socket: Socket,
+    classInstanceId: string,
+    lecturer: Lecturer,
+  ) {
+    // Confirm class exist and is ongoing
+    const classInstance = await this.findOneClassInstanceById(classInstanceId);
+    if (classInstance.status != ClassStatus.OnGoinging) {
+      throw new WsException(
+        `Only allowed for ongoing classes. Please start class first. Class status is ${classInstance.status}.`,
+      );
+    }
+
+    // confirm lecturer is the owner of class
+    if (lecturer.id !== classInstance.base.course.lecturer.id) {
+      throw new UnauthorizedException(
+        'Only Course Lecturer can perform this action',
+      );
+    }
+
+    // Update state of ongoing class to signify that attendance is being taken
+    const studentEnrollments =
+      await this.coursesService.fetchStudentEnrollments(
+        {
+          courseId: classInstance.base.course.id,
+        },
+        ['user.fcm_token'],
+      );
+
+    let onGoingClass = await this.findOrCreateOnGoingClass(
+      classInstance,
+      studentEnrollments,
+    );
+
+    /// set attendance state to false
+    onGoingClass.currently_taking_attendance = false;
+    await this.ongoingClassRepo.save(onGoingClass);
+
+    // send notifications to all enrolled students
+    await this.sendAttendanceStoppedNotification(
+      classInstance,
+      studentEnrollments,
+    );
+
+    // emit event to all class-socket-room
+    // create class rooms and add lecturers
+    let { lecturerRoom, mainRoom } = this.getClassSocketRoom(classInstance);
+    await socket.join([mainRoom, lecturerRoom]);
+    socket.to(mainRoom).emit(WsEvents.AttendanceStopped, onGoingClass);
+    return onGoingClass;
+  }
+
   private sendClassStartedNotification(
     classInstance: ClassInstance,
     students: StudentCourseEnrollment[],
@@ -429,6 +481,28 @@ export class ClassesService {
           body: `${classInstance.base.course.course_code} Lecturer has started taking attendance`,
           data: {
             message: 'Attendance Initiated',
+            class_instance_id: classInstance.id,
+          },
+        });
+      } catch (err) {
+        console.log('Error Occured');
+      }
+    });
+  }
+
+  private sendAttendanceStoppedNotification(
+    classInstance: ClassInstance,
+    students: StudentCourseEnrollment[],
+  ) {
+    students.forEach(async (studentEnrollment) => {
+      try {
+        await this.notificationService.sendNotification({
+          type: NotificationType.AtttendanceInitiated,
+          user: studentEnrollment.student.user,
+          title: 'Lecturer Stopped Taking Attendance',
+          body: `${classInstance.base.course.course_code} Lecturer has stopped taking attendance`,
+          data: {
+            message: 'Attendance Stopped',
             class_instance_id: classInstance.id,
           },
         });

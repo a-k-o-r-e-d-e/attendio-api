@@ -370,7 +370,7 @@ describe('ClassesService', () => {
         id: classInstanceId,
         status: ClassStatus.OnGoinging,
       });
-      const ongoingClassInstance = buildOnGoingClassMock();
+      const ongoingClassInstance = buildOnGoingClassMock({currently_taking_attendance: false});
       const studentEnrollments = [buildStudentCourseEnrollmentMock()];
       const socket: Socket = {
         join: jest.fn(),
@@ -398,6 +398,7 @@ describe('ClassesService', () => {
 
       // Assert
       expect(result).toBeDefined();
+      expect(result.currently_taking_attendance).toEqual(true);
       expect(service.findOneClassInstanceById).toHaveBeenCalledWith(
         classInstanceId,
       );
@@ -426,6 +427,108 @@ describe('ClassesService', () => {
       // Act & Assert
       await expect(
         service.takeAttendance(socket, classInstanceId, lecturer),
+      ).rejects.toThrow(WsException);
+    });
+
+    it('should throw UnauthorizedException if lecturer is not the owner of class', async () => {
+      // Arrange
+      const classInstanceId = 'classInstanceId';
+      const lecturer = buildLecturerMock();
+      const classInstance = buildClassInstanceMock({
+        id: classInstanceId,
+        status: ClassStatus.OnGoinging,
+        base: buildCourseClassMock({
+          course: buildCourseMock({
+            lecturer: buildLecturerMock({ id: 'another-id' }),
+          }),
+        }),
+      });
+      const socket: Socket = {
+        join: jest.fn(),
+        to: jest.fn().mockReturnValue({
+          emit: jest.fn().mockReturnValue(true),
+        }),
+      } as any;
+
+      jest
+        .spyOn(service, 'findOneClassInstanceById')
+        .mockResolvedValueOnce(classInstance);
+
+      // Act & Assert
+      await expect(
+        service.takeAttendance(socket, classInstanceId, lecturer),
+      ).rejects.toThrow(UnauthorizedException);
+    });
+  });
+
+  describe('stopTakingAttendance', () => {
+    it('should stop taking attendance successfully', async () => {
+      // Arrange
+      const classInstanceId = 'classInstanceId';
+      const lecturer = buildLecturerMock();
+      const classInstance = buildClassInstanceMock({
+        id: classInstanceId,
+        status: ClassStatus.OnGoinging,
+      });
+      const ongoingClassInstance = buildOnGoingClassMock({
+        currently_taking_attendance: true
+      });
+      const studentEnrollments = [buildStudentCourseEnrollmentMock()];
+      const socket: Socket = {
+        join: jest.fn(),
+        to: jest.fn().mockReturnValue({
+          emit: jest.fn().mockReturnValue(true),
+        }),
+      } as any;
+
+      jest
+        .spyOn(service, 'findOneClassInstanceById')
+        .mockResolvedValueOnce(classInstance);
+      jest
+        .spyOn(onGoingClassRepo, 'findOneBy')
+        .mockResolvedValue(ongoingClassInstance);
+      jest
+        .spyOn(coursesService, 'fetchStudentEnrollments')
+        .mockResolvedValue(studentEnrollments);
+
+      // Act
+      const result = await service.stopTakingAttendance(
+        socket,
+        classInstanceId,
+        lecturer,
+      );
+
+      // Assert
+      expect(result).toBeDefined();
+      expect(result.currently_taking_attendance).toEqual(false);
+      expect(service.findOneClassInstanceById).toHaveBeenCalledWith(
+        classInstanceId,
+      );
+      expect(onGoingClassRepo.findOneBy).toHaveBeenCalled();
+    });
+
+    it('should throw error if class status is not OnGoinging', async () => {
+      // Arrange
+      const classInstanceId = 'classInstanceId';
+      const lecturer = buildLecturerMock();
+      const classInstance = buildClassInstanceMock({
+        id: classInstanceId,
+        status: ClassStatus.Pending,
+      });
+      const socket: Socket = {
+        join: jest.fn(),
+        to: jest.fn().mockReturnValue({
+          emit: jest.fn().mockReturnValue(true),
+        }),
+      } as any;
+
+      jest
+        .spyOn(service, 'findOneClassInstanceById')
+        .mockResolvedValueOnce(classInstance);
+
+      // Act & Assert
+      await expect(
+        service.stopTakingAttendance(socket, classInstanceId, lecturer),
       ).rejects.toThrow(WsException);
     });
 

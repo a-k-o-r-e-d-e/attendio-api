@@ -141,4 +141,39 @@ describe('ClassesGateway', () => {
       );
     });
   });
+
+  describe('handleHaltAttendance', () => {
+    it('should call stopTakingAttendance method of classesService and return the result', async () => {
+      // Arrange
+      const startClassDto = buildStartClassDtoMock({
+        class_instance_id: 'classInstanceId',
+      });
+      const lecturer = buildLecturerMock();
+      const onGoingClass = buildOnGoingClassMock();
+      const socket: Socket = {
+        join: jest.fn(),
+        to: jest.fn().mockReturnValue({
+          emit: jest.fn().mockReturnValue(true),
+        }),
+        request: {
+          user: lecturer,
+        },
+      } as any;
+
+      jest
+        .spyOn(classesService, 'stopTakingAttendance')
+        .mockResolvedValueOnce(onGoingClass);
+
+      // Act
+      const result = await gateway.handleHaltAttendance(socket, startClassDto);
+
+      // Assert
+      expect(result).toEqual(onGoingClass);
+      expect(classesService.stopTakingAttendance).toHaveBeenCalledWith(
+        socket,
+        'classInstanceId',
+        lecturer,
+      );
+    });
+  });
 });

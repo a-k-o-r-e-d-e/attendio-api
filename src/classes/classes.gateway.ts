@@ -83,5 +83,18 @@ export class ClassesGateway extends BaseWSGateway {
     );
   }
 
-  
+  @Roles(Role.Lecturer)
+  @UseGuards(WsJwtGuard, RolesGuard)
+  @UsePipes(new ValidationPipe())
+  @SubscribeMessage(WsEvents.HaltAttendance)
+  async handleHaltAttendance(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() startClassDto: StartClassDto,
+  ) {
+    return await this.classesService.stopTakingAttendance(
+      socket,
+      startClassDto.class_instance_id,
+      (socket.request as any).user,
+    );
+  }
 }
