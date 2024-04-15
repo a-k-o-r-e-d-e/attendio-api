@@ -67,4 +67,21 @@ export class ClassesGateway extends BaseWSGateway {
       message: 'Successful',
     };
   }
+
+  @Roles(Role.Lecturer)
+  @UseGuards(WsJwtGuard, RolesGuard)
+  @UsePipes(new ValidationPipe())
+  @SubscribeMessage(WsEvents.TakeAttendance)
+  async handleTakeAttendance(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() startClassDto: StartClassDto,
+  ) {
+    return await this.classesService.takeAttendance(
+      socket,
+      startClassDto.class_instance_id,
+      (socket.request as any).user,
+    );
+  }
+
+  
 }

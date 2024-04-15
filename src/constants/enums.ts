@@ -40,4 +40,5 @@ export enum CronJobFreq {
 
 export enum NotificationType {
   ClassStarted = 'class-started',
+  AtttendanceInitiated = 'attendance-initiated'
 }

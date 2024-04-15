@@ -5,6 +5,7 @@ import {
   Inject,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { CreateCourseClassDto } from './dto/create-class.dto';
 import { UpdateCourseClassDto } from './dto/update-class.dto';
@@ -35,6 +36,7 @@ import { OnGoingingClassInstance } from './entities/ongoing-class-instance.entit
 import { Student } from '../students/entities/student.entity';
 import { WsException } from '@nestjs/websockets';
 import WsEvents from '../constants/websocket-events';
+import { Lecturer } from '../lecturers/lecturer.entity';
 
 @Injectable()
 export class ClassesService {
@@ -341,6 +343,57 @@ export class ClassesService {
     socket.to(lecturerRoom).emit(WsEvents.StudentJoinedClass, onGoingClass);
   }
 
+  async takeAttendance(
+    socket: Socket,
+    classInstanceId: string,
+    lecturer: Lecturer,
+  ) {
+    // Confirm class exist and is ongoing
+    const classInstance = await this.findOneClassInstanceById(classInstanceId);
+    if (classInstance.status != ClassStatus.OnGoinging) {
+      throw new WsException(
+        `Only allowed for ongoing classes. Please start class first. Class status is ${classInstance.status}.`,
+      );
+    }
+
+    // confirm lecturer is the owner of class
+    if (lecturer.id !== classInstance.base.course.lecturer.id) {
+      throw new UnauthorizedException(
+        'Only Course Lecturer can perform this action',
+      );
+    }
+
+    // Update state of ongoing class to signify that attendance is being taken
+    const studentEnrollments =
+      await this.coursesService.fetchStudentEnrollments(
+        {
+          courseId: classInstance.base.course.id,
+        },
+        ['user.fcm_token'],
+      );
+
+    let onGoingClass = await this.findOrCreateOnGoingClass(
+      classInstance,
+      studentEnrollments,
+    );
+
+    onGoingClass.currently_taking_attendance = true;
+    await this.ongoingClassRepo.save(onGoingClass);
+
+    // send notifications to all enrolled students
+    await this.sendAttendanceInitiatedNotification(
+      classInstance,
+      studentEnrollments,
+    );
+
+    // emit event to all class-socket-room
+    // create class rooms and add lecturers
+    let { lecturerRoom, mainRoom } = this.getClassSocketRoom(classInstance);
+    await socket.join([mainRoom, lecturerRoom]);
+    socket.to(mainRoom).emit(WsEvents.AtttendanceInitiated, onGoingClass);
+    return onGoingClass;
+  }
+
   private sendClassStartedNotification(
     classInstance: ClassInstance,
     students: StudentCourseEnrollment[],
@@ -363,9 +416,31 @@ export class ClassesService {
     });
   }
 
+  private sendAttendanceInitiatedNotification(
+    classInstance: ClassInstance,
+    students: StudentCourseEnrollment[],
+  ) {
+    students.forEach(async (studentEnrollment) => {
+      try {
+        await this.notificationService.sendNotification({
+          type: NotificationType.AtttendanceInitiated,
+          user: studentEnrollment.student.user,
+          title: 'Lecturer Taking Attendance',
+          body: `${classInstance.base.course.course_code} Lecturer has started taking attendance`,
+          data: {
+            message: 'Attendance Initiated',
+            class_instance_id: classInstance.id,
+          },
+        });
+      } catch (err) {
+        console.log('Error Occured');
+      }
+    });
+  }
+
   private getClassSocketRoom(classInstance: ClassInstance) {
     return {
-      lecturerRoom: `ongoing-class-lecturer-${classInstance.base.course.lecturer.id}`,
+      lecturerRoom: `ongoing-class-lecturer-${classInstance.id}`,
       mainRoom: `ongoing-class-${classInstance.id}`,
     };
   }

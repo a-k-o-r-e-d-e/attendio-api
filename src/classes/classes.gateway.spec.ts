@@ -7,9 +7,8 @@ import { ClassesGateway } from './classes.gateway';
 import { ClassesService } from './classes.service';
 import { TestBed } from '@automock/jest';
 import { Socket } from 'socket.io';
-import { buildUserMock } from '../test/user.factory';
-import { Role } from '../constants/enums';
 import { buildStudentMock } from '../test/student.factory';
+import { buildLecturerMock, buildLecturerMock as lecturer } from '../test/lecturer.factory';
 
 describe('ClassesGateway', () => {
   let gateway: ClassesGateway;
@@ -104,6 +103,42 @@ describe('ClassesGateway', () => {
       await expect(
         gateway.handleJoinClass(socket, startClassDto),
       ).rejects.toThrow('Class is not ongoing');
+    });
+  });
+
+  describe('handleTakeAttendance', () => {
+    it('should call takeAttendance method of classesService and return the result', async () => {
+      // Arrange
+      const startClassDto = buildStartClassDtoMock({
+        class_instance_id: 'classInstanceId',
+      });
+      const lecturer = buildLecturerMock();
+      const onGoingClass = buildOnGoingClassMock();
+      const socket: Socket = {
+        join: jest.fn(),
+        to: jest.fn().mockReturnValue({
+          emit: jest.fn().mockReturnValue(true),
+        }),
+        request: {
+          user: lecturer,
+        },
+      } as any;
+
+      
+      jest
+        .spyOn(classesService, 'takeAttendance')
+        .mockResolvedValueOnce(onGoingClass);
+
+      // Act
+      const result = await gateway.handleTakeAttendance(socket, startClassDto);
+
+      // Assert
+      expect(result).toEqual(onGoingClass);
+      expect(classesService.takeAttendance).toHaveBeenCalledWith(
+        socket,
+        'classInstanceId',
+        lecturer,
+      );
     });
   });
 });
