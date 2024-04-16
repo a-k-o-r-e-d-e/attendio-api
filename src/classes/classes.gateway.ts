@@ -19,7 +19,7 @@ import RolesGuard from '../auth/guards/role.guard';
 import { BaseWSGateway } from '../websocket/websocket.gateway';
 import { WebsocketService } from '../websocket/websocket.service';
 import { ClassesService } from './classes.service';
-import { StartClassDto } from './dto/start-class.dto';
+import { ClassInstanceWsEventDto } from './dto/class-instance-ws-event.dto';
 import { HttpExceptionTransformationFilter } from '../websocket/filters/ws-exception.filter';
 import { Socket } from 'socket.io';
 import WsEvents from '../constants/websocket-events';
@@ -41,10 +41,10 @@ export class ClassesGateway extends BaseWSGateway {
   @SubscribeMessage(WsEvents.StartClass)
   async handleStartClass(
     @ConnectedSocket() socket: Socket,
-    @MessageBody() startClassDto: StartClassDto,
+    @MessageBody() classWsEventDto: ClassInstanceWsEventDto,
   ) {
     return await this.classesService.startClass(
-      startClassDto.class_instance_id,
+      classWsEventDto.class_instance_id,
       socket,
     );
   }
@@ -55,11 +55,11 @@ export class ClassesGateway extends BaseWSGateway {
   @SubscribeMessage(WsEvents.EndClass)
   async handleEndClass(
     @ConnectedSocket() socket: Socket,
-    @MessageBody() startClassDto: StartClassDto,
+    @MessageBody() classWsEventDto: ClassInstanceWsEventDto,
   ) {
     await this.classesService.endClass(
       socket,
-      startClassDto.class_instance_id,
+      classWsEventDto.class_instance_id,
       (socket.request as any).user,
     );
 
@@ -77,12 +77,12 @@ export class ClassesGateway extends BaseWSGateway {
   @SubscribeMessage(WsEvents.JoinClass)
   async handleJoinClass(
     @ConnectedSocket() socket: Socket,
-    @MessageBody() startClassDto: StartClassDto,
+    @MessageBody() classWsEventDto: ClassInstanceWsEventDto,
   ) {
     return await this.classesService.joinClass(
       socket,
       (socket.request as any).user,
-      startClassDto.class_instance_id,
+      classWsEventDto.class_instance_id,
     );
   }
 
@@ -92,11 +92,11 @@ export class ClassesGateway extends BaseWSGateway {
   @SubscribeMessage(WsEvents.TakeAttendance)
   async handleTakeAttendance(
     @ConnectedSocket() socket: Socket,
-    @MessageBody() startClassDto: StartClassDto,
+    @MessageBody() classWsEventDto: ClassInstanceWsEventDto,
   ) {
     return await this.classesService.takeAttendance(
       socket,
-      startClassDto.class_instance_id,
+      classWsEventDto.class_instance_id,
       (socket.request as any).user,
     );
   }
@@ -107,11 +107,11 @@ export class ClassesGateway extends BaseWSGateway {
   @SubscribeMessage(WsEvents.HaltAttendance)
   async handleHaltAttendance(
     @ConnectedSocket() socket: Socket,
-    @MessageBody() startClassDto: StartClassDto,
+    @MessageBody() classWsEventDto: ClassInstanceWsEventDto,
   ) {
     return await this.classesService.stopTakingAttendance(
       socket,
-      startClassDto.class_instance_id,
+      classWsEventDto.class_instance_id,
       (socket.request as any).user,
     );
   }
@@ -120,10 +120,10 @@ export class ClassesGateway extends BaseWSGateway {
   @UsePipes(new ValidationPipe())
   @SubscribeMessage(WsEvents.FetchOnGoingClass)
   async handleFetchOngoingClass(
-    @MessageBody() startClassDto: StartClassDto,
+    @MessageBody() classWsEventDto: ClassInstanceWsEventDto,
   ) {
     return await this.classesService.fetchOnGoingClass(
-      startClassDto.class_instance_id,
+      classWsEventDto.class_instance_id,
     );
   }
 }

@@ -1,14 +1,16 @@
 import '../test/mocks/firebase.mock';
 import {
   buildOnGoingClassMock,
-  buildStartClassDtoMock,
+  buildClassWsEventDtoMock,
 } from '../test/course-class.factory';
 import { ClassesGateway } from './classes.gateway';
 import { ClassesService } from './classes.service';
 import { TestBed } from '@automock/jest';
 import { Socket } from 'socket.io';
 import { buildStudentMock } from '../test/student.factory';
-import { buildLecturerMock, buildLecturerMock as lecturer } from '../test/lecturer.factory';
+import {
+  buildLecturerMock,
+} from '../test/lecturer.factory';
 import WsEvents from '../constants/websocket-events';
 
 describe('ClassesGateway', () => {
@@ -29,7 +31,7 @@ describe('ClassesGateway', () => {
   describe('handleStartClass', () => {
     it('should start class with provided class instance id', async () => {
       // Arrange
-      const startClassDto = buildStartClassDtoMock();
+      const classWsEventDto = buildClassWsEventDtoMock();
       const expectedResponse = buildOnGoingClassMock();
       jest
         .spyOn(classesService, 'startClass')
@@ -40,13 +42,13 @@ describe('ClassesGateway', () => {
       } as any;
 
       // Act
-      const result = await gateway.handleStartClass(socket, startClassDto);
+      const result = await gateway.handleStartClass(socket, classWsEventDto);
 
       // Assert
       expect(result).toEqual(expectedResponse);
       expect(classesService.startClass).toHaveBeenCalledWith(
-        startClassDto.class_instance_id,
-        socket
+        classWsEventDto.class_instance_id,
+        socket,
       );
     });
   });
@@ -54,7 +56,7 @@ describe('ClassesGateway', () => {
   describe('handleEndClass', () => {
     it('should end class with provided class instance id', async () => {
       // Arrange
-      const startClassDto = buildStartClassDtoMock();
+      const classWsEventDto = buildClassWsEventDtoMock();
       const lecturer = buildLecturerMock();
       const socket: Socket = {
         join: jest.fn(),
@@ -63,24 +65,21 @@ describe('ClassesGateway', () => {
         },
       } as any;
 
-      jest
-        .spyOn(classesService, 'endClass')
-        .mockResolvedValue();
-
+      jest.spyOn(classesService, 'endClass').mockResolvedValue();
 
       // Act
-      const result = await gateway.handleEndClass(socket, startClassDto);
+      const result = await gateway.handleEndClass(socket, classWsEventDto);
 
       // Assert
       expect(result).toEqual({
-      event: WsEvents.EndClassAck,
-      data: {
-        message: 'Successful',
-      },
-    });
+        event: WsEvents.EndClassAck,
+        data: {
+          message: 'Successful',
+        },
+      });
       expect(classesService.endClass).toHaveBeenCalledWith(
         socket,
-        startClassDto.class_instance_id,
+        classWsEventDto.class_instance_id,
         lecturer,
       );
     });
@@ -89,7 +88,9 @@ describe('ClassesGateway', () => {
   describe('handleJoinClass', () => {
     it('should join class successfully', async () => {
       // Arrange
-      const startClassDto = buildStartClassDtoMock({class_instance_id: 'classInstanceId'});
+      const classWsEventDto = buildClassWsEventDtoMock({
+        class_instance_id: 'classInstanceId',
+      });
       const student = buildStudentMock();
       const expectedResponse = buildOnGoingClassMock();
       const socket: Socket = {
@@ -98,27 +99,29 @@ describe('ClassesGateway', () => {
           emit: jest.fn().mockReturnValue(true),
         }),
         request: {
-          user: student
-        }
+          user: student,
+        },
       } as any;
 
-      jest.spyOn(classesService, 'joinClass').mockResolvedValueOnce(expectedResponse);
+      jest
+        .spyOn(classesService, 'joinClass')
+        .mockResolvedValueOnce(expectedResponse);
 
       // Act
-      const result = await gateway.handleJoinClass(socket, startClassDto);
+      const result = await gateway.handleJoinClass(socket, classWsEventDto);
 
       // Assert
       expect(result).toEqual(expectedResponse);
       expect(classesService.joinClass).toHaveBeenCalledWith(
         socket,
         student,
-        startClassDto.class_instance_id,
+        classWsEventDto.class_instance_id,
       );
     });
 
     it('should throw error if class status is not OnGoinging', async () => {
       // Arrange
-      const startClassDto = buildStartClassDtoMock({
+      const classWsEventDto = buildClassWsEventDtoMock({
         class_instance_id: 'classInstanceId',
       });
       const student = buildStudentMock();
@@ -138,7 +141,7 @@ describe('ClassesGateway', () => {
 
       // Act & Assert
       await expect(
-        gateway.handleJoinClass(socket, startClassDto),
+        gateway.handleJoinClass(socket, classWsEventDto),
       ).rejects.toThrow('Class is not ongoing');
     });
   });
@@ -146,7 +149,7 @@ describe('ClassesGateway', () => {
   describe('handleTakeAttendance', () => {
     it('should call takeAttendance method of classesService and return the result', async () => {
       // Arrange
-      const startClassDto = buildStartClassDtoMock({
+      const classWsEventDto = buildClassWsEventDtoMock({
         class_instance_id: 'classInstanceId',
       });
       const lecturer = buildLecturerMock();
@@ -161,13 +164,15 @@ describe('ClassesGateway', () => {
         },
       } as any;
 
-      
       jest
         .spyOn(classesService, 'takeAttendance')
         .mockResolvedValueOnce(onGoingClass);
 
       // Act
-      const result = await gateway.handleTakeAttendance(socket, startClassDto);
+      const result = await gateway.handleTakeAttendance(
+        socket,
+        classWsEventDto,
+      );
 
       // Assert
       expect(result).toEqual(onGoingClass);
@@ -182,7 +187,7 @@ describe('ClassesGateway', () => {
   describe('handleHaltAttendance', () => {
     it('should call stopTakingAttendance method of classesService and return the result', async () => {
       // Arrange
-      const startClassDto = buildStartClassDtoMock({
+      const classWsEventDto = buildClassWsEventDtoMock({
         class_instance_id: 'classInstanceId',
       });
       const lecturer = buildLecturerMock();
@@ -202,7 +207,10 @@ describe('ClassesGateway', () => {
         .mockResolvedValueOnce(onGoingClass);
 
       // Act
-      const result = await gateway.handleHaltAttendance(socket, startClassDto);
+      const result = await gateway.handleHaltAttendance(
+        socket,
+        classWsEventDto,
+      );
 
       // Assert
       expect(result).toEqual(onGoingClass);
@@ -217,7 +225,7 @@ describe('ClassesGateway', () => {
   describe('handleFetchOngoingClass', () => {
     it('should call fetchOnGoingClass in service and return its result', async () => {
       // Arrange
-      const startClassDto = buildStartClassDtoMock({
+      const classWsEventDto = buildClassWsEventDtoMock({
         class_instance_id: 'classInstanceId',
       });
       const expectedResult = buildOnGoingClassMock();
@@ -226,11 +234,13 @@ describe('ClassesGateway', () => {
         .mockResolvedValueOnce(expectedResult);
 
       // Act
-      const result = await gateway.handleFetchOngoingClass(startClassDto);
+      const result = await gateway.handleFetchOngoingClass(classWsEventDto);
 
       // Assert
       expect(result).toEqual(expectedResult);
-      expect(classesService.fetchOnGoingClass).toHaveBeenCalledWith(startClassDto.class_instance_id);
+      expect(classesService.fetchOnGoingClass).toHaveBeenCalledWith(
+        classWsEventDto.class_instance_id,
+      );
     });
   });
 });

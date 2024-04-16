@@ -1,6 +1,6 @@
 import { IsUUID } from 'class-validator';
 
-export class StartClassDto {
+export class ClassInstanceWsEventDto {
   @IsUUID()
   class_instance_id: string;
 }
