@@ -29,6 +29,8 @@ import { buildStudentMock } from '../test/student.factory';
 import { WsException } from '@nestjs/websockets';
 import { buildLecturerMock } from '../test/lecturer.factory';
 import { buildAttendanceMock } from '../test/attendance.factory';
+import { Student } from '../students/entities/student.entity';
+import { Lecturer } from '../lecturers/lecturer.entity';
 
 describe('ClassesService', () => {
   let service: ClassesService;
@@ -409,6 +411,7 @@ describe('ClassesService', () => {
       const studentEnrollment = buildStudentCourseEnrollmentMock({ student });
       const students = [buildStudentCourseEnrollmentMock()];
       const ongoingClassInstance = buildOnGoingClassMock();
+      const attendanceRecord = buildAttendanceMock();
       const socket: Socket = {
         join: jest.fn(),
         to: jest.fn().mockReturnValue({
@@ -429,6 +432,9 @@ describe('ClassesService', () => {
       jest
         .spyOn(onGoingClassRepo, 'findOneBy')
         .mockResolvedValue(ongoingClassInstance);
+      jest
+        .spyOn(attendanceService, 'findOrCreateAttendanceRecord')
+        .mockResolvedValueOnce(attendanceRecord);
 
       // Act
       await service.joinClass(socket, student, classInstanceId);
@@ -677,6 +683,7 @@ describe('ClassesService', () => {
       });
       const onGoingClass = buildOnGoingClassMock();
       const studentEnrollments = [buildStudentCourseEnrollmentMock()];
+      const student = buildStudentMock();
 
       jest
         .spyOn(service, 'findOneClassInstanceById')
@@ -684,12 +691,15 @@ describe('ClassesService', () => {
       jest
         .spyOn(service as any, 'findOrCreateOnGoingClass')
         .mockResolvedValueOnce(onGoingClass);
-        jest
-          .spyOn(coursesService, 'fetchStudentEnrollments')
-          .mockResolvedValue(studentEnrollments);
+      jest
+        .spyOn(coursesService, 'fetchStudentEnrollments')
+        .mockResolvedValue(studentEnrollments);
 
       // Act
-      const result = await service.fetchOnGoingClass('classInstanceId');
+      const result = await service.fetchOnGoingClass(
+        'classInstanceId',
+        student,
+      );
 
       // Assert
       expect(result).toEqual(onGoingClass);
@@ -708,6 +718,7 @@ describe('ClassesService', () => {
         id: 'classInstanceId',
         status: ClassStatus.Pending,
       });
+      const lecturer = buildLecturerMock();
 
       jest
         .spyOn(service, 'findOneClassInstanceById')
@@ -715,8 +726,78 @@ describe('ClassesService', () => {
 
       // Act & Assert
       await expect(
-        service.fetchOnGoingClass('classInstanceId'),
+        service.fetchOnGoingClass('classInstanceId', lecturer),
       ).rejects.toThrow(WsException);
+    });
+
+    it('should return onGoingClass for student with correct properties', async () => {
+      // Arrange
+      const classInstance = buildClassInstanceMock({
+        status: ClassStatus.OnGoinging,
+      });
+      const student = new Student(buildStudentMock())
+      const studentEnrollment = buildStudentCourseEnrollmentMock();
+      const attendance = buildAttendanceMock();
+      const onGoingClass = buildOnGoingClassMock();
+
+      jest
+        .spyOn(service, 'findOneClassInstanceById')
+        .mockResolvedValueOnce(classInstance);
+      jest
+        .spyOn(coursesService, 'fetchStudentEnrollments')
+        .mockResolvedValueOnce([studentEnrollment]);
+      jest
+        .spyOn(service as any, 'findOrCreateOnGoingClass')
+        .mockResolvedValueOnce(onGoingClass); // Mock onGoingClass object
+      jest
+        .spyOn(attendanceService, 'findOrCreateAttendanceRecord')
+        .mockResolvedValueOnce(attendance);
+
+      // Act
+      const result = await service.fetchOnGoingClass(
+        'classInstanceId',
+        student,
+      );
+
+      // Assert
+      expect(result).toBeDefined();
+      expect(result.student_joined).toBeDefined();
+      expect(result.student_marked_present).toBeDefined();
+      // Add more assertions as needed
+    });
+
+    it('should return onGoingClass for lecturer with correct properties', async () => {
+      // Arrange
+      const classInstance = buildClassInstanceMock({
+        status: ClassStatus.OnGoinging,
+      });
+      const lecturer = new Lecturer(buildLecturerMock());
+      const studentEnrollment = buildStudentCourseEnrollmentMock();
+      const ongoingClass = buildOnGoingClassMock();
+      const attendanceRecords = [buildAttendanceMock()];
+
+      jest
+        .spyOn(service, 'findOneClassInstanceById')
+        .mockResolvedValueOnce(classInstance);
+      jest
+        .spyOn(coursesService, 'fetchStudentEnrollments')
+        .mockResolvedValueOnce([studentEnrollment]);
+      jest
+        .spyOn(service as any, 'findOrCreateOnGoingClass')
+        .mockResolvedValueOnce(ongoingClass); // Mock onGoingClass object
+      jest
+        .spyOn(attendanceService, 'fetchAttendaceRecords')
+        .mockResolvedValueOnce(attendanceRecords);
+
+      // Act
+      const result = await service.fetchOnGoingClass(
+        'classInstanceId',
+        lecturer,
+      );
+
+      // Assert
+      expect(result).toBeDefined();
+      expect(result.attendance_records).toBeDefined();
     });
   });
 
@@ -727,7 +808,7 @@ describe('ClassesService', () => {
       const student = buildStudentMock();
       const classInstance = buildClassInstanceMock({
         id: classInstanceId,
-        status: ClassStatus.OnGoinging
+        status: ClassStatus.OnGoinging,
       });
       classInstance.status = ClassStatus.OnGoinging;
       const studentEnrollment = buildStudentCourseEnrollmentMock();
@@ -754,7 +835,7 @@ describe('ClassesService', () => {
         .spyOn(coursesService, 'fetchStudentEnrollments')
         .mockResolvedValueOnce([studentEnrollment]);
       jest
-        .spyOn((service as any), 'findOrCreateOnGoingClass')
+        .spyOn(service as any, 'findOrCreateOnGoingClass')
         .mockResolvedValueOnce(onGoingClass as any);
       jest
         .spyOn(attendanceService, 'markStudentPresent')
@@ -775,22 +856,20 @@ describe('ClassesService', () => {
       expect(service.findOneClassInstanceById).toHaveBeenCalledWith(
         classInstanceId,
       );
-      expect(
-        coursesService.findOneStudentEnrollment,
-      ).toHaveBeenCalledWith({
+      expect(coursesService.findOneStudentEnrollment).toHaveBeenCalledWith({
         course: { id: classInstance.base.course.id },
         student: { id: student.id },
-    });
-      expect(
-        coursesService.fetchStudentEnrollments,
-      ).toHaveBeenCalledWith({ courseId: classInstance.base.course.id });
+      });
+      expect(coursesService.fetchStudentEnrollments).toHaveBeenCalledWith({
+        courseId: classInstance.base.course.id,
+      });
       expect(attendanceService.markStudentPresent).toHaveBeenCalledWith(
         studentEnrollment,
         classInstance,
       );
-      expect(
-        attendanceService.fetchAttendaceRecords,
-      ).toHaveBeenCalledWith(classInstance);
+      expect(attendanceService.fetchAttendaceRecords).toHaveBeenCalledWith(
+        classInstance,
+      );
     });
 
     it('should throw WsException if class is not ongoing', async () => {
@@ -799,7 +878,7 @@ describe('ClassesService', () => {
       const student = buildStudentMock();
       const classInstance = buildClassInstanceMock({
         id: classInstanceId,
-        status: ClassStatus.Pending
+        status: ClassStatus.Pending,
       });
       const socket: Socket = {
         join: jest.fn(),
@@ -807,7 +886,7 @@ describe('ClassesService', () => {
           emit: jest.fn().mockReturnValue(true),
         }),
       } as any;
-    
+
       jest
         .spyOn(service, 'findOneClassInstanceById')
         .mockResolvedValueOnce(classInstance);

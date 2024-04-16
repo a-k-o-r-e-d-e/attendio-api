@@ -8,9 +8,7 @@ import { ClassesService } from './classes.service';
 import { TestBed } from '@automock/jest';
 import { Socket } from 'socket.io';
 import { buildStudentMock } from '../test/student.factory';
-import {
-  buildLecturerMock,
-} from '../test/lecturer.factory';
+import { buildLecturerMock } from '../test/lecturer.factory';
 import WsEvents from '../constants/websocket-events';
 
 describe('ClassesGateway', () => {
@@ -228,18 +226,32 @@ describe('ClassesGateway', () => {
       const classWsEventDto = buildClassWsEventDtoMock({
         class_instance_id: 'classInstanceId',
       });
+      const lecturer = buildLecturerMock();
       const expectedResult = buildOnGoingClassMock();
+      const socket: Socket = {
+        join: jest.fn(),
+        to: jest.fn().mockReturnValue({
+          emit: jest.fn().mockReturnValue(true),
+        }),
+        request: {
+          user: lecturer,
+        },
+      } as any;
       jest
         .spyOn(classesService, 'fetchOnGoingClass')
         .mockResolvedValueOnce(expectedResult);
 
       // Act
-      const result = await gateway.handleFetchOngoingClass(classWsEventDto);
+      const result = await gateway.handleFetchOngoingClass(
+        socket,
+        classWsEventDto,
+      );
 
       // Assert
       expect(result).toEqual(expectedResult);
       expect(classesService.fetchOnGoingClass).toHaveBeenCalledWith(
         classWsEventDto.class_instance_id,
+        lecturer
       );
     });
   });
@@ -247,7 +259,7 @@ describe('ClassesGateway', () => {
   describe('handleMarkAttendance', () => {
     it('should call classesService.markAttendance with correct parameters', async () => {
       // Arrange
-      const student = buildStudentMock()
+      const student = buildStudentMock();
       const socket: Socket = {
         join: jest.fn(),
         to: jest.fn().mockReturnValue({

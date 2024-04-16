@@ -135,10 +135,12 @@ export class ClassesGateway extends BaseWSGateway {
   @UsePipes(new ValidationPipe())
   @SubscribeMessage(WsEvents.FetchOnGoingClass)
   async handleFetchOngoingClass(
+    @ConnectedSocket() socket: Socket,
     @MessageBody() classWsEventDto: ClassInstanceWsEventDto,
   ) {
     return await this.classesService.fetchOnGoingClass(
       classWsEventDto.class_instance_id,
+      (socket.request as any).user,
     );
   }
 }

@@ -380,6 +380,13 @@ export class ClassesService {
       await this.ongoingClassRepo.save(onGoingClass);
     }
 
+    // fetch attendance record
+    let attendanceRecord =
+      await this.attendanceService.findOrCreateAttendanceRecord(
+        studentEnrollment,
+        classInstance,
+      );
+
     let { lecturerRoom, mainRoom } = this.getClassSocketRoom(classInstance);
 
     // Add student to main room.
@@ -388,6 +395,10 @@ export class ClassesService {
     // inform lecturer of new joined student
     // emit 'student-joined-class' event to class instance room
     socket.to(lecturerRoom).emit(WsEvents.StudentJoinedClass, onGoingClass);
+
+    // Update or add fields specific to student
+    onGoingClass.student_marked_present = attendanceRecord.is_present;
+    onGoingClass.student_joined = true;
 
     return onGoingClass;
   }
@@ -422,9 +433,9 @@ export class ClassesService {
       studentEnrollments,
     );
 
-    // check if class attendance is being taken 
-    if (!onGoingClass.currently_taking_attendance ) {
-      throw new WsException("Lecturer is currrently not taking attendance");
+    // check if class attendance is being taken
+    if (!onGoingClass.currently_taking_attendance) {
+      throw new WsException('Lecturer is currrently not taking attendance');
     }
 
     const studentAlreadyJoined = onGoingClass.present_enrolled_students.find(
@@ -450,13 +461,15 @@ export class ClassesService {
 
     // inform lecturer of new joined student
     // emit 'student-joined-class' event to class instance room
-    socket
-      .to(lecturerRoom)
-      .emit(WsEvents.StudentMarkedPresent, {
-        attendance_records: attendanceRecords,
-      });
+    socket.to(lecturerRoom).emit(WsEvents.StudentMarkedPresent, {
+      attendance_records: attendanceRecords,
+    });
 
-      return onGoingClass;
+    // Update or add fields specific to student
+    onGoingClass.student_marked_present = true;
+    onGoingClass.student_joined = true;
+
+    return onGoingClass;
   }
 
   async takeAttendance(
@@ -573,7 +586,7 @@ export class ClassesService {
     return onGoingClass;
   }
 
-  async fetchOnGoingClass(classInstanceId: string) {
+  async fetchOnGoingClass(classInstanceId: string, user: Student | Lecturer) {
     // Confirm class exist
     const classInstance = await this.findOneClassInstanceById(classInstanceId);
 
@@ -597,6 +610,36 @@ export class ClassesService {
       classInstance,
       studentEnrollments,
     );
+
+    if (user instanceof Lecturer) {
+      console.log("Instance of Lecturer:: ", true);
+      const attendanceRecords =
+        await this.attendanceService.fetchAttendaceRecords(classInstance);
+      onGoingClass.attendance_records = attendanceRecords;
+    } else if (user instanceof Student) {
+      console.log('Instance of Student:: ', true);
+      // check that student is enrolled for class.
+      const studentEnrollment =
+        await this.coursesService.findOneStudentEnrollment({
+          course: { id: classInstance.base.course.id },
+          student: { id: user.id },
+        });
+      const studentAlreadyJoined = onGoingClass.present_enrolled_students.find(
+        (stu) => stu.studentId === user.id,
+      );
+      onGoingClass.student_joined = !!studentAlreadyJoined;
+      // fetch attendance record
+      let attendanceRecord =
+        await this.attendanceService.findOrCreateAttendanceRecord(
+          studentEnrollment,
+          classInstance,
+        );
+      onGoingClass.student_marked_present = attendanceRecord.is_present;
+    }
+
+    console.log('Instance of Lecturer:: ', user instanceof Lecturer);
+    console.log('Instance of Student:: ', user instanceof Student);
+
 
     return onGoingClass;
   }
