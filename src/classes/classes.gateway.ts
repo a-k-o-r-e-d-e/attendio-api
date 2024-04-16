@@ -19,7 +19,7 @@ import RolesGuard from '../auth/guards/role.guard';
 import { BaseWSGateway } from '../websocket/websocket.gateway';
 import { WebsocketService } from '../websocket/websocket.service';
 import { ClassesService } from './classes.service';
-import { StartClassDto } from './dto/start-class.dto';
+import { ClassInstanceWsEventDto } from './dto/class-instance-ws-event.dto';
 import { HttpExceptionTransformationFilter } from '../websocket/filters/ws-exception.filter';
 import { Socket } from 'socket.io';
 import WsEvents from '../constants/websocket-events';
@@ -41,12 +41,34 @@ export class ClassesGateway extends BaseWSGateway {
   @SubscribeMessage(WsEvents.StartClass)
   async handleStartClass(
     @ConnectedSocket() socket: Socket,
-    @MessageBody() startClassDto: StartClassDto,
+    @MessageBody() classWsEventDto: ClassInstanceWsEventDto,
   ) {
     return await this.classesService.startClass(
-      startClassDto.class_instance_id,
+      classWsEventDto.class_instance_id,
       socket,
     );
+  }
+
+  @Roles(Role.Lecturer)
+  @UseGuards(WsJwtGuard, RolesGuard)
+  @UsePipes(new ValidationPipe())
+  @SubscribeMessage(WsEvents.EndClass)
+  async handleEndClass(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() classWsEventDto: ClassInstanceWsEventDto,
+  ) {
+    await this.classesService.endClass(
+      socket,
+      classWsEventDto.class_instance_id,
+      (socket.request as any).user,
+    );
+
+    return {
+      event: WsEvents.EndClassAck,
+      data: {
+        message: 'Successful',
+      },
+    };
   }
 
   @Roles(Role.Student)
@@ -55,16 +77,70 @@ export class ClassesGateway extends BaseWSGateway {
   @SubscribeMessage(WsEvents.JoinClass)
   async handleJoinClass(
     @ConnectedSocket() socket: Socket,
-    @MessageBody() startClassDto: StartClassDto,
+    @MessageBody() classWsEventDto: ClassInstanceWsEventDto,
   ) {
-    await this.classesService.joinClass(
+    return await this.classesService.joinClass(
       socket,
       (socket.request as any).user,
-      startClassDto.class_instance_id,
+      classWsEventDto.class_instance_id,
     );
+  }
 
-    return {
-      message: 'Successful',
-    };
+  @Roles(Role.Student)
+  @UseGuards(WsJwtGuard, RolesGuard)
+  @UsePipes(new ValidationPipe())
+  @SubscribeMessage(WsEvents.MarkAttendance)
+  async handleMarkAttendance(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() classWsEventDto: ClassInstanceWsEventDto,
+  ) {
+    return await this.classesService.markAttendance(
+      socket,
+      (socket.request as any).user,
+      classWsEventDto.class_instance_id,
+    );
+  }
+
+  @Roles(Role.Lecturer)
+  @UseGuards(WsJwtGuard, RolesGuard)
+  @UsePipes(new ValidationPipe())
+  @SubscribeMessage(WsEvents.TakeAttendance)
+  async handleTakeAttendance(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() classWsEventDto: ClassInstanceWsEventDto,
+  ) {
+    return await this.classesService.takeAttendance(
+      socket,
+      classWsEventDto.class_instance_id,
+      (socket.request as any).user,
+    );
+  }
+
+  @Roles(Role.Lecturer)
+  @UseGuards(WsJwtGuard, RolesGuard)
+  @UsePipes(new ValidationPipe())
+  @SubscribeMessage(WsEvents.HaltAttendance)
+  async handleHaltAttendance(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() classWsEventDto: ClassInstanceWsEventDto,
+  ) {
+    return await this.classesService.stopTakingAttendance(
+      socket,
+      classWsEventDto.class_instance_id,
+      (socket.request as any).user,
+    );
+  }
+
+  @UseGuards(WsJwtGuard)
+  @UsePipes(new ValidationPipe())
+  @SubscribeMessage(WsEvents.FetchOnGoingClass)
+  async handleFetchOngoingClass(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() classWsEventDto: ClassInstanceWsEventDto,
+  ) {
+    return await this.classesService.fetchOnGoingClass(
+      classWsEventDto.class_instance_id,
+      (socket.request as any).user,
+    );
   }
 }

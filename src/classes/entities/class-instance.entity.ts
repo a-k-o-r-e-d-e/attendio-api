@@ -12,7 +12,6 @@ export class ClassInstance extends CustomBaseEntity {
   status: ClassStatus;
 
   @Column({ type: 'date' })
-  @IsDateString()
   date: Date;
 
   @Column()

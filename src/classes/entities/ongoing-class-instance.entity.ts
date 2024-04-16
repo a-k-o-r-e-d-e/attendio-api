@@ -2,6 +2,7 @@ import { CustomBaseEntity } from "../../common/entities/base.entity";
 import { Column, Entity, JoinColumn, JoinTable, ManyToMany, OneToOne } from "typeorm";
 import { ClassInstance } from "./class-instance.entity";
 import { StudentCourseEnrollment } from "../../courses/entities/student-course-enrollment.entity";
+import { Attendance } from "../../attendance/entities/attendance.entity";
 
 @Entity()
 export class OnGoingingClassInstance extends CustomBaseEntity {
@@ -17,4 +18,10 @@ export class OnGoingingClassInstance extends CustomBaseEntity {
   currently_taking_attendance: boolean;
 
   count_of_enrolled_students?: number;
+
+  student_joined?: boolean;
+
+  student_marked_present?: boolean;
+
+  attendance_records?: Attendance[]
 }

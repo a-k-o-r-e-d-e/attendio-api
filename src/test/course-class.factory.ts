@@ -1,4 +1,4 @@
-import { StartClassDto } from '../classes/dto/start-class.dto';
+import { ClassInstanceWsEventDto } from '../classes/dto/class-instance-ws-event.dto';
 import { CreateCourseClassDto } from '../classes/dto/create-class.dto';
 import { UpdateCourseClassDto } from '../classes/dto/update-class.dto';
 import { ClassInstance } from '../classes/entities/class-instance.entity';
@@ -75,9 +75,9 @@ export function buildUpdateCourseClassDtoMock(
   };
 }
 
-export function buildStartClassDtoMock(
-  partial?: Partial<StartClassDto>,
-): StartClassDto {
+export function buildClassWsEventDtoMock(
+  partial?: Partial<ClassInstanceWsEventDto>,
+): ClassInstanceWsEventDto {
   return {
     class_instance_id: 'class_instance_id',
     ...partial,
