@@ -9,6 +9,7 @@ import { TestBed } from '@automock/jest';
 import { Socket } from 'socket.io';
 import { buildStudentMock } from '../test/student.factory';
 import { buildLecturerMock, buildLecturerMock as lecturer } from '../test/lecturer.factory';
+import WsEvents from '../constants/websocket-events';
 
 describe('ClassesGateway', () => {
   let gateway: ClassesGateway;
@@ -50,11 +51,47 @@ describe('ClassesGateway', () => {
     });
   });
 
+  describe('handleEndClass', () => {
+    it('should end class with provided class instance id', async () => {
+      // Arrange
+      const startClassDto = buildStartClassDtoMock();
+      const lecturer = buildLecturerMock();
+      const socket: Socket = {
+        join: jest.fn(),
+        request: {
+          user: lecturer,
+        },
+      } as any;
+
+      jest
+        .spyOn(classesService, 'endClass')
+        .mockResolvedValue();
+
+
+      // Act
+      const result = await gateway.handleEndClass(socket, startClassDto);
+
+      // Assert
+      expect(result).toEqual({
+      event: WsEvents.EndClassAck,
+      data: {
+        message: 'Successful',
+      },
+    });
+      expect(classesService.endClass).toHaveBeenCalledWith(
+        socket,
+        startClassDto.class_instance_id,
+        lecturer,
+      );
+    });
+  });
+
   describe('handleJoinClass', () => {
     it('should join class successfully', async () => {
       // Arrange
       const startClassDto = buildStartClassDtoMock({class_instance_id: 'classInstanceId'});
       const student = buildStudentMock();
+      const expectedResponse = buildOnGoingClassMock();
       const socket: Socket = {
         join: jest.fn(),
         to: jest.fn().mockReturnValue({
@@ -65,13 +102,13 @@ describe('ClassesGateway', () => {
         }
       } as any;
 
-      jest.spyOn(classesService, 'joinClass').mockResolvedValueOnce();
+      jest.spyOn(classesService, 'joinClass').mockResolvedValueOnce(expectedResponse);
 
       // Act
       const result = await gateway.handleJoinClass(socket, startClassDto);
 
       // Assert
-      expect(result).toEqual({ message: 'Successful' });
+      expect(result).toEqual(expectedResponse);
       expect(classesService.joinClass).toHaveBeenCalledWith(
         socket,
         student,

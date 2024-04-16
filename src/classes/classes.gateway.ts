@@ -49,6 +49,28 @@ export class ClassesGateway extends BaseWSGateway {
     );
   }
 
+  @Roles(Role.Lecturer)
+  @UseGuards(WsJwtGuard, RolesGuard)
+  @UsePipes(new ValidationPipe())
+  @SubscribeMessage(WsEvents.EndClass)
+  async handleEndClass(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() startClassDto: StartClassDto,
+  ) {
+    await this.classesService.endClass(
+      socket,
+      startClassDto.class_instance_id,
+      (socket.request as any).user,
+    );
+
+    return {
+      event: WsEvents.EndClassAck,
+      data: {
+        message: 'Successful',
+      },
+    };
+  }
+
   @Roles(Role.Student)
   @UseGuards(WsJwtGuard, RolesGuard)
   @UsePipes(new ValidationPipe())
@@ -57,15 +79,11 @@ export class ClassesGateway extends BaseWSGateway {
     @ConnectedSocket() socket: Socket,
     @MessageBody() startClassDto: StartClassDto,
   ) {
-    await this.classesService.joinClass(
+    return await this.classesService.joinClass(
       socket,
       (socket.request as any).user,
       startClassDto.class_instance_id,
     );
-
-    return {
-      message: 'Successful',
-    };
   }
 
   @Roles(Role.Lecturer)

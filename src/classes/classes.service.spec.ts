@@ -271,8 +271,7 @@ describe('ClassesService', () => {
 
     it('should throw ConflictException if class status is Held', async () => {
       // Arrange
-      const classInstance = new ClassInstance();
-      classInstance.status = ClassStatus.Held;
+      const classInstance = buildClassInstanceMock({status: ClassStatus.Held});
 
       const socket: Socket = {
         join: jest.fn(),
@@ -291,6 +290,105 @@ describe('ClassesService', () => {
       await expect(
         service.startClass('classInstanceId', socket),
       ).rejects.toThrow(ConflictException);
+    });
+  });
+
+  describe('endClass', () => {
+    it('should end class and send notifications to students', async () => {
+      // Arrange
+      const classInstance = buildClassInstanceMock({
+        status: ClassStatus.OnGoinging,
+      });
+      const lecturer = buildLecturerMock();
+      const ongoingClassInstance = buildOnGoingClassMock();
+
+      const students = [buildStudentCourseEnrollmentMock()];
+
+      const socket: Socket = {
+        join: jest.fn(),
+        to: jest.fn().mockReturnValue({
+          emit: jest.fn().mockReturnValue(true),
+        }),
+      } as any;
+
+      jest
+        .spyOn(service, 'findOneClassInstanceById')
+        .mockResolvedValue(classInstance);
+
+      jest
+        .spyOn(onGoingClassRepo, 'findOneBy')
+        .mockResolvedValue(ongoingClassInstance);
+      jest
+        .spyOn(coursesService, 'fetchStudentEnrollments')
+        .mockResolvedValue(students);
+      jest
+        .spyOn(socket, 'join')
+        .mockResolvedValue(undefined)
+        .mockReturnValue(undefined);
+
+      // Act
+      await service.endClass(socket, 'classInstanceId', lecturer);
+
+      // Assert
+      expect(classInstance.status).toEqual(ClassStatus.Held);
+      expect(coursesService.fetchStudentEnrollments).toHaveBeenCalledWith(
+        { courseId: classInstance.base.course.id },
+        ['user.fcm_token'],
+      );
+      expect(notificationsService.sendNotification).toHaveBeenCalled();
+    });
+
+    it('should throw ConflictException if class status is Held', async () => {
+      // Arrange
+      const classInstance = buildClassInstanceMock({status: ClassStatus.Held})
+      const lecturer = buildLecturerMock();
+      const socket: Socket = {
+        join: jest.fn(),
+      } as any;
+
+      jest
+        .spyOn(socket, 'join')
+        .mockResolvedValue(undefined)
+        .mockReturnValue(undefined);
+
+      jest
+        .spyOn(service, 'findOneClassInstanceById')
+        .mockResolvedValue(classInstance);
+
+      // Act & Assert
+      await expect(
+        service.endClass(socket,'classInstanceId', lecturer),
+      ).rejects.toThrow(ConflictException);
+    });
+
+    it('should throw UnauthorizedException if lecturer is not the owner of class', async () => {
+      // Arrange
+      const classInstanceId = 'classInstanceId';
+      const lecturer = buildLecturerMock();
+      const classInstance = buildClassInstanceMock({
+        id: classInstanceId,
+        status: ClassStatus.OnGoinging,
+        base: buildCourseClassMock({
+          course: buildCourseMock({
+            lecturer: buildLecturerMock({ id: 'another-id' }),
+          }),
+        }),
+      });
+      const socket: Socket = {
+        join: jest.fn(),
+        to: jest.fn().mockReturnValue({
+          emit: jest.fn().mockReturnValue(true),
+        }),
+      } as any;
+
+      jest
+        .spyOn(service, 'findOneClassInstanceById')
+        .mockResolvedValueOnce(classInstance);
+
+      // Act & Assert
+      await expect(
+        service.endClass(socket, classInstanceId, lecturer),
+      ).rejects.toThrow(UnauthorizedException);
     });
   });
 
