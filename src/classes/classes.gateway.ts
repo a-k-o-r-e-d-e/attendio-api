@@ -86,6 +86,21 @@ export class ClassesGateway extends BaseWSGateway {
     );
   }
 
+  @Roles(Role.Student)
+  @UseGuards(WsJwtGuard, RolesGuard)
+  @UsePipes(new ValidationPipe())
+  @SubscribeMessage(WsEvents.MarkAttendance)
+  async handleMarkAttendance(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() classWsEventDto: ClassInstanceWsEventDto,
+  ) {
+    return await this.classesService.markAttendance(
+      socket,
+      (socket.request as any).user,
+      classWsEventDto.class_instance_id,
+    );
+  }
+
   @Roles(Role.Lecturer)
   @UseGuards(WsJwtGuard, RolesGuard)
   @UsePipes(new ValidationPipe())

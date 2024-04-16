@@ -392,6 +392,73 @@ export class ClassesService {
     return onGoingClass;
   }
 
+  async markAttendance(
+    socket: Socket,
+    student: Student,
+    classInstanceId: string,
+  ) {
+    // check existence of classInstance
+    const classInstance = await this.findOneClassInstanceById(classInstanceId);
+
+    // check that student is enrolled for class.
+    const studentEnrollment =
+      await this.coursesService.findOneStudentEnrollment({
+        course: { id: classInstance.base.course.id },
+        student: { id: student.id },
+      });
+
+    // check that class is ongoing
+    if (classInstance.status != ClassStatus.OnGoinging) {
+      throw new WsException('You can only join an ongoing class ');
+    }
+
+    // update ongoing class state
+    const studentEnrollments =
+      await this.coursesService.fetchStudentEnrollments({
+        courseId: classInstance.base.course.id,
+      });
+    let onGoingClass = await this.findOrCreateOnGoingClass(
+      classInstance,
+      studentEnrollments,
+    );
+
+    // check if class attendance is being taken 
+    if (!onGoingClass.currently_taking_attendance ) {
+      throw new WsException("Lecturer is currrently not taking attendance");
+    }
+
+    const studentAlreadyJoined = onGoingClass.present_enrolled_students.find(
+      (stu) => stu.studentId === studentEnrollment.studentId,
+    );
+    if (!studentAlreadyJoined) {
+      onGoingClass.present_enrolled_students.push(studentEnrollment);
+      await this.ongoingClassRepo.save(onGoingClass);
+    }
+
+    // Mark Student Present
+    await this.attendanceService.markStudentPresent(
+      studentEnrollment,
+      classInstance,
+    );
+    const attendanceRecords =
+      await this.attendanceService.fetchAttendaceRecords(classInstance);
+
+    let { lecturerRoom, mainRoom } = this.getClassSocketRoom(classInstance);
+
+    // Add student to main room.
+    socket.join([mainRoom]);
+
+    // inform lecturer of new joined student
+    // emit 'student-joined-class' event to class instance room
+    socket
+      .to(lecturerRoom)
+      .emit(WsEvents.StudentMarkedPresent, {
+        attendance_records: attendanceRecords,
+      });
+
+      return onGoingClass;
+  }
+
   async takeAttendance(
     socket: Socket,
     classInstanceId: string,
@@ -531,7 +598,7 @@ export class ClassesService {
       studentEnrollments,
     );
 
-    return onGoingClass
+    return onGoingClass;
   }
 
   private sendClassStartedNotification(

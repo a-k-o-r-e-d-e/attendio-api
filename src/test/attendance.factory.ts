@@ -14,10 +14,10 @@ export const buildAttendanceMock = (
     updated_at: new Date(),
     ...partial,
     class_instance: {
-      ...buildClassInstanceMock(partial.class_instance),
+      ...buildClassInstanceMock(partial?.class_instance),
     },
     student_enrollment: {
-      ...buildStudentCourseEnrollmentMock(partial.student_enrollment),
+      ...buildStudentCourseEnrollmentMock(partial?.student_enrollment),
     },
   };
 };

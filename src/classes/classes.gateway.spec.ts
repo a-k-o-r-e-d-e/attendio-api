@@ -243,4 +243,33 @@ describe('ClassesGateway', () => {
       );
     });
   });
+
+  describe('handleMarkAttendance', () => {
+    it('should call classesService.markAttendance with correct parameters', async () => {
+      // Arrange
+      const student = buildStudentMock()
+      const socket: Socket = {
+        join: jest.fn(),
+        to: jest.fn().mockReturnValue({
+          emit: jest.fn().mockReturnValue(true),
+        }),
+        request: {
+          user: student,
+        },
+      } as any;
+      const class_instance_id = 'class-instance-id';
+      const classWsEventDto = { class_instance_id };
+      jest.spyOn(classesService, 'markAttendance').mockResolvedValueOnce(null);
+
+      // Act
+      await gateway.handleMarkAttendance(socket, classWsEventDto);
+
+      // Assert
+      expect(classesService.markAttendance).toHaveBeenCalledWith(
+        socket,
+        student,
+        class_instance_id,
+      );
+    });
+  });
 });

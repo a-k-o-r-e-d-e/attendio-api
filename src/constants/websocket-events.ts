@@ -10,7 +10,9 @@ const WsEvents = {
   EndClass: 'end-class',
   ClassEnded: 'class-ended',
   EndClassAck: 'end-class-acknowledged',
-  FetchOnGoingClass: 'fetch-ongoing-class'
+  FetchOnGoingClass: 'fetch-ongoing-class',
+  MarkAttendance: 'mark-attendance',
+  StudentMarkedPresent: 'student-marked-present'
 };
 
 
