@@ -213,4 +213,24 @@ describe('ClassesGateway', () => {
       );
     });
   });
+
+  describe('handleFetchOngoingClass', () => {
+    it('should call fetchOnGoingClass in service and return its result', async () => {
+      // Arrange
+      const startClassDto = buildStartClassDtoMock({
+        class_instance_id: 'classInstanceId',
+      });
+      const expectedResult = buildOnGoingClassMock();
+      jest
+        .spyOn(classesService, 'fetchOnGoingClass')
+        .mockResolvedValueOnce(expectedResult);
+
+      // Act
+      const result = await gateway.handleFetchOngoingClass(startClassDto);
+
+      // Assert
+      expect(result).toEqual(expectedResult);
+      expect(classesService.fetchOnGoingClass).toHaveBeenCalledWith(startClassDto.class_instance_id);
+    });
+  });
 });

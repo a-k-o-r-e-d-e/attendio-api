@@ -301,7 +301,7 @@ export class ClassesService {
   }
 
   async endClass(socket: Socket, classInstanceId: string, lecturer: Lecturer) {
-    // Confirm class exist 
+    // Confirm class exist
     const classInstance = await this.findOneClassInstanceById(classInstanceId);
 
     // confirm lecturer is the owner of class
@@ -504,6 +504,34 @@ export class ClassesService {
     await socket.join([mainRoom, lecturerRoom]);
     socket.to(mainRoom).emit(WsEvents.AttendanceStopped, onGoingClass);
     return onGoingClass;
+  }
+
+  async fetchOnGoingClass(classInstanceId: string) {
+    // Confirm class exist
+    const classInstance = await this.findOneClassInstanceById(classInstanceId);
+
+    // confirm class is ongoing
+    if (classInstance.status != ClassStatus.OnGoinging) {
+      throw new WsException(
+        `Only allowed for ongoing classes. Please start class first. Class status is ${classInstance.status}.`,
+      );
+    }
+
+    // Update state of ongoing class to signify that attendance is being taken
+    const studentEnrollments =
+      await this.coursesService.fetchStudentEnrollments(
+        {
+          courseId: classInstance.base.course.id,
+        },
+        ['user.fcm_token'],
+      );
+
+    let onGoingClass = await this.findOrCreateOnGoingClass(
+      classInstance,
+      studentEnrollments,
+    );
+
+    return onGoingClass
   }
 
   private sendClassStartedNotification(

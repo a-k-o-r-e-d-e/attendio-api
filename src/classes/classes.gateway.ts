@@ -115,4 +115,15 @@ export class ClassesGateway extends BaseWSGateway {
       (socket.request as any).user,
     );
   }
+
+  @UseGuards(WsJwtGuard)
+  @UsePipes(new ValidationPipe())
+  @SubscribeMessage(WsEvents.FetchOnGoingClass)
+  async handleFetchOngoingClass(
+    @MessageBody() startClassDto: StartClassDto,
+  ) {
+    return await this.classesService.fetchOnGoingClass(
+      startClassDto.class_instance_id,
+    );
+  }
 }

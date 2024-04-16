@@ -9,7 +9,8 @@ const WsEvents = {
   AttendanceStopped: 'attendance-stopped',
   EndClass: 'end-class',
   ClassEnded: 'class-ended',
-  EndClassAck: 'end-class-acknowledged'
+  EndClassAck: 'end-class-acknowledged',
+  FetchOnGoingClass: 'fetch-ongoing-class'
 };
 
 
